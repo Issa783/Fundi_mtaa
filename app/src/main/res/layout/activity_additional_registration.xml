@@ -1,0 +1,75 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register as:"
+        android:textSize="18sp"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/radioGroupUserType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <RadioButton
+            android:id="@+id/radioButtonClient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Client"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/radioButtonWorker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Worker"/>
+
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/editTextAbout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="About"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editTextExperience"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Years of Experience"
+        android:inputType="number"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editTextLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Location"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/buttonUploadProfilePicture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Upload Profile Picture"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/buttonSubmitRegistration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit Registration"/>
+</LinearLayout>

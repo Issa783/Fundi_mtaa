@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:layout_marginLeft="10dp">
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/launch"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:id="@+id/imgTop"
+        />
+
+    <EditText
+        android:id="@+id/editTextEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/imgTop"
+        android:layout_marginTop="7dp"
+        />
+
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:layout_below="@id/editTextEmail"
+        android:layout_marginTop="7dp"
+        />
+
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:layout_below="@id/editTextPassword"
+        android:layout_marginTop="7dp"
+        />
+    <TextView
+        android:id="@+id/textViewResetPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forgot password?"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textStyle="italic|bold"
+        android:layout_below="@id/buttonLogin"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="7dp"
+        />
+
+    <TextView
+        android:id="@+id/textViewRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't have an account? Register here"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textStyle="italic|bold"
+        android:layout_below="@id/textViewResetPassword"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/or"
+        android:text="Or"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/black"
+        android:layout_below="@id/textViewRegister"
+        android:layout_marginTop="12dp"
+        />
+    <Button
+        android:id="@+id/buttonGoogleLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login with Google"
+        android:layout_below="@id/textViewRegister"
+        android:layout_marginTop="40dp"
+        />
+</RelativeLayout>
