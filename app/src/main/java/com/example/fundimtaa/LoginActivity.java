@@ -9,6 +9,7 @@ import android.widget.Toast;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.auth.api.Auth;
@@ -41,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Configure Google Sign-In
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Use your actual Web Client ID here
+                .requestIdToken("878531237039-odhvhm05a4h7t52pkmett7pd1eb38qqp.apps.googleusercontent.com") // Use your actual Web Client ID here
                 .requestEmail()
                 .build();
 
@@ -114,18 +115,19 @@ public class LoginActivity extends AppCompatActivity {
 
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        startActivityForResult(signInIntent, RC_SIGN_IN, null);
     }
 
     // Handle the result of the Google Sign-In intent
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
         }
     }
+
 
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {

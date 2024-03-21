@@ -28,12 +28,43 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
         buttonUploadProfilePicture = findViewById(R.id.buttonUploadProfilePicture);
         buttonSubmitRegistration = findViewById(R.id.buttonSubmitRegistration);
 
+        // Show or hide fields based on initial radio button selection
+        toggleFields();
+
+        // Set up listener for radio button changes
+        radioGroupUserType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                toggleFields();
+            }
+        });
+
         buttonSubmitRegistration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 submitRegistration();
             }
         });
+    }
+
+    private void toggleFields() {
+        int selectedId = radioGroupUserType.getCheckedRadioButtonId();
+        RadioButton selectedRadioButton = findViewById(selectedId);
+
+        if (selectedRadioButton != null) {
+            String userType = selectedRadioButton.getText().toString();
+            if (userType.equals("Worker")) {
+                // Show fields for Worker
+                editTextLocation.setVisibility(View.VISIBLE);
+                editTextAbout.setVisibility(View.VISIBLE);
+                editTextExperience.setVisibility(View.VISIBLE);
+            } else {
+                // Show fields for Client
+                editTextLocation.setVisibility(View.VISIBLE);
+                editTextAbout.setVisibility(View.VISIBLE);
+                editTextExperience.setVisibility(View.GONE);
+            }
+        }
     }
 
     private void submitRegistration() {

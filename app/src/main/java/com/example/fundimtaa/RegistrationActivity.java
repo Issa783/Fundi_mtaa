@@ -1,5 +1,6 @@
 package com.example.fundimtaa;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -63,7 +64,8 @@ public class RegistrationActivity extends AppCompatActivity {
                                     mDatabase.child(userId).setValue(user);
 
                                     Toast.makeText(RegistrationActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-                                    finish(); // Close the registration activity
+                                    Intent intent = new Intent(RegistrationActivity.this, AdditionalRegistrationActivity.class);
+                                    startActivity(intent);
                                 } else {
                                     // If sign up fails, display a message to the user
                                     Toast.makeText(RegistrationActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
