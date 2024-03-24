@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
-    <color name="white">#876969</color>
-    <color name="partialwhite">#E31A1A</color>
+    <color name="white">#E6DBDB</color>
     <color name="pink">#FFE31A1A</color>
+
+    <color name="my_primary">#8E24AA</color>
+    <color name="my_secondary">#9C27B0</color>
 </resources>

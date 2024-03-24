@@ -11,15 +11,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RegistrationActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +27,6 @@ public class RegistrationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_registration);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
         // Find the Register button in the layout
         Button buttonRegister = findViewById(R.id.buttonRegister);
@@ -36,19 +35,27 @@ public class RegistrationActivity extends AppCompatActivity {
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Get user input from EditText fields
                 EditText editTextName = findViewById(R.id.editTextName);
                 EditText editTextEmail = findViewById(R.id.editTextEmail);
                 EditText editTextPassword = findViewById(R.id.editTextPassword);
+                EditText editTextConfirmPassword = findViewById(R.id.editTextConfirmPassword);
                 EditText editTextMobile = findViewById(R.id.editTextMobile);
+
                 String name = editTextName.getText().toString().trim();
                 String email = editTextEmail.getText().toString().trim();
                 String password = editTextPassword.getText().toString().trim();
+                String confirmPassword = editTextConfirmPassword.getText().toString().trim();
                 String mobile = editTextMobile.getText().toString().trim();
 
                 // Validate user input
-                if (name.isEmpty() || email.isEmpty() || password.isEmpty() || mobile.isEmpty()) {
+                if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || mobile.isEmpty()) {
                     Toast.makeText(RegistrationActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Check if password matches confirmPassword
+                if (!password.equals(confirmPassword)) {
+                    Toast.makeText(RegistrationActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -58,14 +65,28 @@ public class RegistrationActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task task) {
                                 if (task.isSuccessful()) {
-                                    // Sign up success, store additional user data in Realtime Database
+                                    // Sign up success, store user data in Firestore
                                     String userId = mAuth.getCurrentUser().getUid();
+                                    FirebaseFirestore db = FirebaseFirestore.getInstance();
                                     User user = new User(userId, name, email, mobile);
-                                    mDatabase.child(userId).setValue(user);
 
-                                    Toast.makeText(RegistrationActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(RegistrationActivity.this, AdditionalRegistrationActivity.class);
-                                    startActivity(intent);
+                                    // Store basic user info in Firestore
+                                    db.collection("users").document(userId)
+                                            .set(user)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Intent intent = new Intent(RegistrationActivity.this, AdditionalRegistrationActivity.class);
+                                                    intent.putExtra("userId", userId); // Pass userId to AdditionalRegistrationActivity
+                                                    startActivity(intent);
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Toast.makeText(RegistrationActivity.this, "Failed to register user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
                                 } else {
                                     // If sign up fails, display a message to the user
                                     Toast.makeText(RegistrationActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

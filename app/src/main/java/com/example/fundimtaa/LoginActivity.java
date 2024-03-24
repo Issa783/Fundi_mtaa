@@ -48,6 +48,13 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
+        TextView  forgotPassword = findViewById(R.id.forgotpassword);
+        forgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(LoginActivity.this, ForgotPassword.class));
+            }
+        });
         // Find the Sign Up TextView in LoginActivity
         TextView textViewRegister = findViewById(R.id.textViewRegister);
 
