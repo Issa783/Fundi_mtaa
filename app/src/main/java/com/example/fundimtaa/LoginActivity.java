@@ -122,7 +122,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN, null);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     // Handle the result of the Google Sign-In intent
@@ -134,7 +134,6 @@ public class LoginActivity extends AppCompatActivity {
             handleSignInResult(task);
         }
     }
-
 
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
@@ -165,4 +164,5 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
+
 }

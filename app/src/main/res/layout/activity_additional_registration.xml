@@ -59,11 +59,20 @@
         android:hint="Location"
         android:visibility="gone"
         android:layout_marginBottom="16dp"/>
+
     <EditText
         android:id="@+id/editTextSpecialization"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Specialization"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editTextCVName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="CV Name"
         android:visibility="gone"
         android:layout_marginBottom="16dp"/>
 
@@ -73,6 +82,7 @@
         android:layout_height="wrap_content"
         android:text="Upload Profile Picture"
         android:layout_marginBottom="16dp"/>
+
     <Button
         android:id="@+id/buttonUploadCV"
         android:layout_width="match_parent"

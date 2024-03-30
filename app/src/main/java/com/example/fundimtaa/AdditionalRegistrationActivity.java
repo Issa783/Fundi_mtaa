@@ -1,7 +1,10 @@
 package com.example.fundimtaa;
+
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
@@ -28,10 +31,11 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
     private RadioGroup radioGroupUserType;
     private Button buttonUploadProfilePicture, buttonSubmitRegistration;
     private Button buttonUploadCV;
+    private EditText editTextCVName; // New field for CV name
     private Uri cvUri;
     private StorageReference cvStorageReference;
-    private FirebaseFirestore db; // Add this line
-    private String userId; // Add this line
+    private FirebaseFirestore db;
+    private String userId;
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int PICK_PDF_REQUEST = 2;
@@ -40,8 +44,8 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_additional_registration);
-        db = FirebaseFirestore.getInstance(); // Initialize Firestore
-        userId = getIntent().getStringExtra("userId"); // Retrieve user ID from intent
+        db = FirebaseFirestore.getInstance();
+        userId = getIntent().getStringExtra("userId");
 
         editTextAbout = findViewById(R.id.editTextAbout);
         editTextExperience = findViewById(R.id.editTextExperience);
@@ -51,6 +55,7 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
         buttonUploadProfilePicture = findViewById(R.id.buttonUploadProfilePicture);
         buttonSubmitRegistration = findViewById(R.id.buttonSubmitRegistration);
         buttonUploadCV = findViewById(R.id.buttonUploadCV);
+        editTextCVName = findViewById(R.id.editTextCVName); // Initialize CV name field
 
         FirebaseStorage storage = FirebaseStorage.getInstance();
         cvStorageReference = storage.getReference().child("cv_files");
@@ -100,12 +105,16 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
                 editTextAbout.setVisibility(View.VISIBLE);
                 editTextExperience.setVisibility(View.VISIBLE);
                 editTextSpecialization.setVisibility(View.VISIBLE);
+                editTextCVName.setVisibility(View.VISIBLE); // Show CV name field
+                buttonUploadCV.setVisibility(View.VISIBLE); // Show upload CV button
             } else {
                 // Show fields for Client
                 editTextLocation.setVisibility(View.VISIBLE);
                 editTextAbout.setVisibility(View.VISIBLE);
                 editTextExperience.setVisibility(View.GONE);
-                editTextSpecialization.setVisibility(View.VISIBLE);
+                editTextSpecialization.setVisibility(View.GONE);
+                editTextCVName.setVisibility(View.GONE); // Hide CV name field
+                buttonUploadCV.setVisibility(View.GONE); // Hide upload CV button
             }
         }
     }
@@ -116,6 +125,7 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
         String experience = editTextExperience.getText().toString().trim();
         String location = editTextLocation.getText().toString().trim();
         String specialization = editTextSpecialization.getText().toString().trim();
+        String cvName = editTextCVName.getText().toString().trim(); // Get CV name
         String userType = radioGroupUserType.getCheckedRadioButtonId() == R.id.radioButtonClient ? "Client" : "Worker";
         // Update Firestore document with additional information
         DocumentReference userRef = db.collection("users").document(userId);
@@ -123,7 +133,8 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
                 .update("about", about,
                         "experience", experience,
                         "location", location,
-                        "specialization", specialization)
+                        "specialization", specialization,
+                        "cvName", cvName) // Update CV name field
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -191,12 +202,46 @@ public class AdditionalRegistrationActivity extends AppCompatActivity {
 
     private void uploadCV() {
         if (cvUri != null) {
-            StorageReference fileReference = cvStorageReference.child(System.currentTimeMillis() + ".pdf");
+            // Get the actual file name from the URI
+            String cvFileName = getFileName(cvUri);
+            StorageReference fileReference = cvStorageReference.child(cvFileName); // Use the actual file name
             fileReference.putFile(cvUri)
-                    .addOnSuccessListener(taskSnapshot -> Toast.makeText(AdditionalRegistrationActivity.this, "CV Uploaded Successfully", Toast.LENGTH_SHORT).show())
+                    .addOnSuccessListener(taskSnapshot -> {
+                        Toast.makeText(AdditionalRegistrationActivity.this, "CV Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                        // Set the name of the uploaded file to the EditText field
+                        editTextCVName.setText(cvFileName);
+                        // Make the EditText field visible
+                        editTextCVName.setVisibility(View.VISIBLE);
+                    })
                     .addOnFailureListener(e -> Toast.makeText(AdditionalRegistrationActivity.this, "Upload Failed", Toast.LENGTH_SHORT).show());
         }
     }
+
+    // Method to extract the file name from the URI
+    // Method to extract the file name from the URI
+    private String getFileName(Uri uri) {
+        String result = null;
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (nameIndex != -1) {
+                    result = cursor.getString(nameIndex);
+                } else {
+                    // Handle the case where DISPLAY_NAME column is not found
+                    result = uri.getLastPathSegment();
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return result;
+    }
+
+
+
 
     private String getFileExtension(Uri uri) {
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(getContentResolver().getType(uri));
