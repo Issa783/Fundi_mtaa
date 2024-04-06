@@ -15,12 +15,9 @@
         android:layout_marginTop="16dp"
         android:src="@drawable/ic_backarrow" />
 
-    <!-- Job listings -->
-    <!-- Include your job listings here, such as RecyclerView or ListView -->
-
     <!-- Floating action button (FAB) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingButton"
+        android:id="@+id/floatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -30,5 +27,19 @@
         android:src="@drawable/ic_home"
         app:backgroundTint="@color/my_primary"
         android:contentDescription="Add New Job"/>
+
+    <!-- Button to navigate to ViewJobsActivity -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonViewJobs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Jobs"
+        android:layout_margin="16dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        app:cornerRadius="8dp"
+        app:backgroundTint="@color/my_primary"
+        android:textColor="@color/white"/>
+
 
 </RelativeLayout>

@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     android:gravity="center"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -19,24 +20,47 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
-
+            <!-- Register as text -->
             <TextView
-                android:id="@+id/textViewTitle"
+                android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Register to Fundi Mtaa"
-                android:textSize="20sp"
-                android:textColor="@color/my_primary"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp" />
+                android:text="Register as:"
+                android:textSize="18sp"
+                android:layout_marginTop="16dp"/>
 
+            <!-- Radio buttons for user type selection -->
+            <RadioGroup
+                android:id="@+id/radioGroupUserType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_below="@id/textView"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/radioButtonClient"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Client"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/radioButtonWorker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Worker"/>
+
+            </RadioGroup>
+
+            <!-- EditText fields for registration details -->
             <EditText
                 android:id="@+id/editTextName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Name"
-                android:layout_below="@id/textViewTitle"
-                android:layout_marginTop="24dp" />
+                android:layout_below="@id/radioGroupUserType"
+                android:layout_marginTop="16dp" />
 
             <EditText
                 android:id="@+id/editTextEmail"
@@ -74,6 +98,7 @@
                 android:layout_below="@id/editTextConfirmPassword"
                 android:layout_marginTop="8dp" />
 
+            <!-- Register button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonRegister"
                 android:layout_width="match_parent"

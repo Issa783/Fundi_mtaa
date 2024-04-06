@@ -25,6 +25,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -32,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInOptions gso;
     private GoogleSignInClient mGoogleSignInClient; // Google Sign-In client
     private static final int RC_SIGN_IN = 9001; // Request code for Google Sign-In
+    private FirebaseFirestore mFirestore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
+        mFirestore = FirebaseFirestore.getInstance();
 
         // Configure Google Sign-In
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -55,6 +59,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(new Intent(LoginActivity.this, ForgotPassword.class));
             }
         });
+
         // Find the Sign Up TextView in LoginActivity
         TextView textViewRegister = findViewById(R.id.textViewRegister);
 
@@ -97,8 +102,46 @@ public class LoginActivity extends AppCompatActivity {
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     Toast.makeText(LoginActivity.this, "Authentication succeeded.", Toast.LENGTH_SHORT).show();
 
-                                    // Start LoginActivity2
-                                    startActivity(new Intent(LoginActivity.this, LoginActivity2.class));
+                                    // Get user's role from Firestore and redirect accordingly
+                                    String userId = user.getUid();
+                                    mFirestore.collection("clients").document(userId).get()
+                                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    if (task.isSuccessful()) {
+                                                        DocumentSnapshot document = task.getResult();
+                                                        if (document.exists()) {
+                                                            // User is a client
+                                                            startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                        } else {
+                                                            // User is not a client, check if they are a worker
+                                                            mFirestore.collection("workers").document(userId).get()
+                                                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                                        @Override
+                                                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                                            if (task.isSuccessful()) {
+                                                                                DocumentSnapshot document = task.getResult();
+                                                                                if (document.exists()) {
+                                                                                    // User is a worker
+                                                                                    startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
+                                                                                } else {
+                                                                                    // User is neither a client nor a worker
+                                                                                    Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
+                                                                                }
+                                                                            } else {
+                                                                                // Error fetching worker document
+                                                                                Toast.makeText(LoginActivity.this, "Error fetching worker document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                                            }
+                                                                        }
+                                                                    });
+                                                        }
+                                                    } else {
+                                                        // Error fetching client document
+                                                        Toast.makeText(LoginActivity.this, "Error fetching client document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
+
                                 } else {
                                     // If sign in fails, display a message to the user.
                                     Toast.makeText(LoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
@@ -155,8 +198,47 @@ public class LoginActivity extends AppCompatActivity {
                             // Sign in success
                             FirebaseUser user = mAuth.getCurrentUser();
                             Toast.makeText(LoginActivity.this, "Google Sign-In succeeded.", Toast.LENGTH_SHORT).show();
-                            // Start LoginActivity2 or any other activity
-                            startActivity(new Intent(LoginActivity.this, LoginActivity2.class));
+
+                            // Get user's role from Firestore and redirect accordingly
+                            String userId = user.getUid();
+                            mFirestore.collection("clients").document(userId).get()
+                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            if (task.isSuccessful()) {
+                                                DocumentSnapshot document = task.getResult();
+                                                if (document.exists()) {
+                                                    // User is a client
+                                                    startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                } else {
+                                                    // User is not a client, check if they are a worker
+                                                    mFirestore.collection("workers").document(userId).get()
+                                                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                                    if (task.isSuccessful()) {
+                                                                        DocumentSnapshot document = task.getResult();
+                                                                        if (document.exists()) {
+                                                                            // User is a worker
+                                                                            startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
+                                                                        } else {
+                                                                            // User is neither a client nor a worker
+                                                                            Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    } else {
+                                                                        // Error fetching worker document
+                                                                        Toast.makeText(LoginActivity.this, "Error fetching worker document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                }
+                                                            });
+                                                }
+                                            } else {
+                                                // Error fetching client document
+                                                Toast.makeText(LoginActivity.this, "Error fetching client document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+
                         } else {
                             // Sign in failed
                             Toast.makeText(LoginActivity.this, "Google Sign-In failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

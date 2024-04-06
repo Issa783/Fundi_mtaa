@@ -15,6 +15,21 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".ItemJobActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewJobsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ClientActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UserActivity"
+            android:exported="false" />
+        <activity
             android:name=".PostingActivity"
             android:exported="false" />
         <activity

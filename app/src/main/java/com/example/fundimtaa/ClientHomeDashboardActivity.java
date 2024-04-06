@@ -20,7 +20,7 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
         // Find views
         CardView postJobCard = findViewById(R.id.card_post_job);
 
-        FloatingActionButton floatingActionButton = findViewById(R.id.floatingButton);
+
         // Set OnClickListener for the post job card
         postJobCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -30,13 +30,6 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // Set OnClickListener for the floating action button
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to the post job interface
-                startActivity(new Intent(ClientHomeDashboardActivity.this, PostJobActivity.class));
-            }
-        });
+
     }
 }

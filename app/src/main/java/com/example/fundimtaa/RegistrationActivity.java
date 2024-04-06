@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,8 @@ public class RegistrationActivity extends AppCompatActivity {
         EditText editTextConfirmPassword = findViewById(R.id.editTextConfirmPassword);
         EditText editTextMobile = findViewById(R.id.editTextMobile);
 
+        RadioGroup radioGroupRole = findViewById(R.id.radioGroupUserType);
+
         Button buttonRegister = findViewById(R.id.buttonRegister);
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,6 +58,20 @@ public class RegistrationActivity extends AppCompatActivity {
                     return;
                 }
 
+                int selectedRoleId = radioGroupRole.getCheckedRadioButtonId();
+                String role;
+                Class<?> nextActivity;
+                if (selectedRoleId == R.id.radioButtonClient) {
+                    role = "client";
+                    nextActivity = ClientActivity.class;
+                } else if (selectedRoleId == R.id.radioButtonWorker) {
+                    role = "worker";
+                    nextActivity = WorkerActivity.class;
+                } else {
+                    Toast.makeText(RegistrationActivity.this, "Please select a role", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(RegistrationActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
@@ -64,14 +81,16 @@ public class RegistrationActivity extends AppCompatActivity {
                                     String userId = mAuth.getCurrentUser().getUid();
                                     User user = new User(userId, name, email, mobile);
 
-                                    db.collection("users").document(userId)
+                                    // Store user data in the appropriate collection based on role
+                                    db.collection(role + "s").document(userId)
                                             .set(user)
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
+                                                        Toast.makeText(RegistrationActivity.this, " data stored successfully", Toast.LENGTH_SHORT).show();
                                                         // User data stored successfully
-                                                        Intent intent = new Intent(RegistrationActivity.this, AdditionalRegistrationActivity.class);
+                                                        Intent intent = new Intent(RegistrationActivity.this, nextActivity);
                                                         intent.putExtra("userId", userId);
                                                         startActivity(intent);
                                                         finish();
@@ -87,7 +106,6 @@ public class RegistrationActivity extends AppCompatActivity {
                                 }
                             }
                         });
-
             }
         });
     }
