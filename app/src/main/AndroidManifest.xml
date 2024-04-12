@@ -15,6 +15,15 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".WorkerViewJobs"
+            android:exported="false" />
+        <activity
+            android:name=".ItemJobWorkersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SearchJob"
+            android:exported="false" />
+        <activity
             android:name=".ItemJobActivity"
             android:exported="false" />
         <activity

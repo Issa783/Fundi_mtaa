@@ -37,6 +37,8 @@ public class PostJobActivity extends AppCompatActivity {
         EditText editTextJobStartDate = findViewById(R.id.editTextJobStartDate);
         EditText editTextJobDescription = findViewById(R.id.editTextJobDescription);
         EditText editTextMinExperience = findViewById(R.id.editTextMinExperience);
+        EditText editTextLocation = findViewById(R.id.editTextLocation);
+        EditText editTextPrice = findViewById(R.id.editTextPrice);
         ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
         imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +67,8 @@ public class PostJobActivity extends AppCompatActivity {
                 String jobStartDate = editTextJobStartDate.getText().toString().trim();
                 String jobDescription = editTextJobDescription.getText().toString().trim();
                 String minExperience = editTextMinExperience.getText().toString().trim();
+                String location = editTextLocation.getText().toString().trim();
+                String price = editTextPrice.getText().toString().trim();
 
                 // Check if all fields are filled
                 if (jobName.isEmpty() || jobStartDate.isEmpty() || jobDescription.isEmpty() || minExperience.isEmpty()) {
@@ -78,6 +82,8 @@ public class PostJobActivity extends AppCompatActivity {
                 jobDetails.put("jobStartDate", jobStartDate);
                 jobDetails.put("jobDescription", jobDescription);
                 jobDetails.put("minExperience", minExperience);
+                jobDetails.put("location",location);
+                jobDetails.put("price",price);
 
                 // Add the job details to Firestore
                 db.collection("jobs").document()
@@ -92,6 +98,8 @@ public class PostJobActivity extends AppCompatActivity {
                                 editTextJobStartDate.setText("");
                                 editTextJobDescription.setText("");
                                 editTextMinExperience.setText("");
+                                editTextLocation.setText("");
+                                editTextPrice.setText("");
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {

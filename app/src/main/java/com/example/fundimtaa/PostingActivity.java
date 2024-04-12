@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -29,6 +30,14 @@ public class PostingActivity extends AppCompatActivity {
 
         // Find the "View Jobs" button
         Button buttonViewJobs = findViewById(R.id.buttonViewJobs);
+        ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
+        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate back to the previous activity
+                onBackPressed();
+            }
+        });
 
         // Set OnClickListener for the "View Jobs" button
         buttonViewJobs.setOnClickListener(new View.OnClickListener() {

@@ -21,6 +21,7 @@
         android:layout_marginTop="-80dp"
         android:layout_below="@+id/top_view">
         <androidx.cardview.widget.CardView
+            android:id="@+id/search_Jobs_Card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:cardCornerRadius="15dp"

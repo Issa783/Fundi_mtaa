@@ -3,10 +3,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- ImageView for back arrow -->
+    <ImageView
+        android:id="@+id/imageViewBackArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_backarrow"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp" />
+
+    <!-- TextView for jobs -->
+    <TextView
+        android:id="@+id/textViewJobs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Jobs"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp" />
+
+    <!-- RecyclerView for displaying jobs -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewJobs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp" />
+        android:layout_below="@id/textViewJobs"
+         android:padding="4dp"
+     />
 
 </RelativeLayout>

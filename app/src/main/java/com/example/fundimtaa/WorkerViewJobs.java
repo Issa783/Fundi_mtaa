@@ -13,19 +13,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-public class ViewJobsActivity extends AppCompatActivity {
-
+public class WorkerViewJobs extends AppCompatActivity {
     private FirebaseFirestore db;
     private RecyclerView recyclerViewJobs;
     private JobAdapter jobAdapter;
@@ -34,7 +28,7 @@ public class ViewJobsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_jobs);
+        setContentView(R.layout.activity_worker_view_jobs);
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -52,15 +46,6 @@ public class ViewJobsActivity extends AppCompatActivity {
 
         // Set adapter to RecyclerView
         recyclerViewJobs.setAdapter(jobAdapter);
-        ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
-        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate back to the previous activity
-                onBackPressed();
-            }
-        });
-
         // Load jobs from Firestore
         loadJobs();
     }
@@ -75,39 +60,36 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String jobName = document.getString("jobName");
                             String jobStartDate = document.getString("jobStartDate");
                             String minExperience = document.getString("minExperience");
-                            String location =  document.getString("location");
+                            String location = document.getString("location");
                             String price = document.getString("price");
-                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience,location,price);
+                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience, location, price);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
                     } else {
-                        Toast.makeText(ViewJobsActivity.this, "Failed to load jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(WorkerViewJobs.this, "Failed to load jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-
-
     // ViewHolder for the RecyclerView
     private static class JobViewHolder extends RecyclerView.ViewHolder {
         TextView textViewJobName;
-        TextView textViewPublishedOn;
+        TextView textViewStartDate;
         TextView textViewPrice;
-        Button buttonManage;
-        Button buttonViewWorkers;
+        Button buttonViewDetails;
+        Button buttonViewApply;
 
         public JobViewHolder(View itemView) {
             super(itemView);
             textViewJobName = itemView.findViewById(R.id.textViewJobName);
-            textViewPublishedOn = itemView.findViewById(R.id.textViewPublishedOn);
+            textViewStartDate = itemView.findViewById(R.id.textViewStartDate);
             textViewPrice = itemView.findViewById(R.id.textViewPrice);
-            buttonManage = itemView.findViewById(R.id.buttonManage);
-            buttonViewWorkers = itemView.findViewById(R.id.buttonViewWorkers);
+            buttonViewDetails = itemView.findViewById(R.id.buttonViewDetails);
+            buttonViewApply = itemView.findViewById(R.id.buttonApply);
         }
     }
 
-    // Adapter for the RecyclerView
     private class JobAdapter extends RecyclerView.Adapter<JobViewHolder> {
 
         private List<Job> jobList;
@@ -118,7 +100,7 @@ public class ViewJobsActivity extends AppCompatActivity {
 
         @Override
         public JobViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_job, parent, false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_job_workers, parent, false);
             return new JobViewHolder(view);
         }
 
@@ -126,21 +108,21 @@ public class ViewJobsActivity extends AppCompatActivity {
         public void onBindViewHolder(JobViewHolder holder, int position) {
             Job job = jobList.get(position);
             holder.textViewJobName.setText("Job Name: " + job.getJobName());
-            holder.textViewPublishedOn.setText("Published on: " + job.getStartDate());
+            holder.textViewStartDate.setText("Start Date: " + job.getStartDate());
             holder.textViewPrice.setText("Price: " + job.getPrice());
 
-            // Set OnClickListener for the Manage button
-            holder.buttonManage.setOnClickListener(v -> {
-                // Handle manage button click
-                // You can implement the logic to open the post job activity here
-                Toast.makeText(ViewJobsActivity.this, "Manage button clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
+            // Set OnClickListener for the View Details button
+            holder.buttonViewDetails.setOnClickListener(v -> {
+                // Handle view details button click
+                // You can implement the logic to view job details here
+                Toast.makeText(WorkerViewJobs.this, "View details clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
             });
 
-            // Set OnClickListener for the View Workers button
-            holder.buttonViewWorkers.setOnClickListener(v -> {
-                // Handle view workers button click
-                // You can implement the logic to view workers here
-                Toast.makeText(ViewJobsActivity.this, "View workers clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
+            // Set OnClickListener for the Apply button
+            holder.buttonViewApply.setOnClickListener(v -> {
+                // Handle apply button click
+                // You can implement the logic to apply for the job here
+                Toast.makeText(WorkerViewJobs.this, "Apply clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
             });
         }
 
