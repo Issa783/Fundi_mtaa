@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -101,6 +102,8 @@ public class LoginActivity extends AppCompatActivity {
                                     // Sign in success, update UI with the signed-in user's information
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     Toast.makeText(LoginActivity.this, "Authentication succeeded.", Toast.LENGTH_SHORT).show();
+                                    // Subscribe the client to the "client_notifications" topic
+                                    FirebaseMessaging.getInstance().subscribeToTopic("client_notifications");
 
                                     // Get user's role from Firestore and redirect accordingly
                                     String userId = user.getUid();

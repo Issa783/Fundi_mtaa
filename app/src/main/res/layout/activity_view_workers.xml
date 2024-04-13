@@ -20,7 +20,7 @@
         android:id="@+id/textViewSearchJobs"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Search Jobs"
+        android:text="Search Workers"
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_centerHorizontal="true"
@@ -48,7 +48,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Search Job"
+                android:hint="Search Worker"
                 android:background="@null"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
@@ -68,7 +68,7 @@
     </androidx.cardview.widget.CardView>
     <!-- RecyclerView for displaying jobs -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewJobs"
+        android:id="@+id/recyclerWorkerViewJobs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/cardViewSearch"

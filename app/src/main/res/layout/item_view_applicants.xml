@@ -12,10 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-
-        <!-- Job Name -->
         <TextView
-            android:id="@+id/textViewJobName"
+            android:id="@+id/textViewName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
@@ -23,17 +21,11 @@
 
         <!-- Start Date -->
         <TextView
-            android:id="@+id/textViewStartDate"
+            android:id="@+id/textViewLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp" />
 
-        <!-- Price -->
-        <TextView
-            android:id="@+id/textViewPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp" />
 
         <!-- Buttons -->
         <LinearLayout
@@ -47,14 +39,14 @@
                 android:id="@+id/buttonViewDetails"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:text="View Details" />
+                android:text="View Profile" />
 
             <!-- Apply Button -->
             <Button
                 android:id="@+id/buttonApply"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:text="Apply" />
+                android:text="Assign Job" />
 
         </LinearLayout>
 

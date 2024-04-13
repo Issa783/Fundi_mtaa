@@ -1,9 +1,10 @@
 package com.example.fundimtaa;
 
+import android.content.Context; // Add import for Context
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +13,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class WorkerViewJobs extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         // Initialize RecyclerView
-        recyclerViewJobs = findViewById(R.id.recyclerViewJobs);
+        recyclerViewJobs = findViewById(R.id.recyclerWorkerViewJobs);
         recyclerViewJobs.setHasFixedSize(true);
         recyclerViewJobs.setLayoutManager(new LinearLayoutManager(this));
 
@@ -42,10 +41,20 @@ public class WorkerViewJobs extends AppCompatActivity {
         jobList = new ArrayList<>();
 
         // Initialize adapter
-        jobAdapter = new JobAdapter(jobList);
+        jobAdapter = new JobAdapter(this, jobList); // Pass 'this' as the Context
 
         // Set adapter to RecyclerView
         recyclerViewJobs.setAdapter(jobAdapter);
+
+        ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
+        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate back to the previous activity
+                onBackPressed();
+            }
+        });
+
         // Load jobs from Firestore
         loadJobs();
     }
@@ -62,7 +71,8 @@ public class WorkerViewJobs extends AppCompatActivity {
                             String minExperience = document.getString("minExperience");
                             String location = document.getString("location");
                             String price = document.getString("price");
-                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience, location, price);
+                            String jobDescription = document.getString("jobDescription");
+                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience, location, price, jobDescription);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -93,9 +103,11 @@ public class WorkerViewJobs extends AppCompatActivity {
     private class JobAdapter extends RecyclerView.Adapter<JobViewHolder> {
 
         private List<Job> jobList;
+        private Context context;
 
-        public JobAdapter(List<Job> jobList) {
+        public JobAdapter(Context context, List<Job> jobList) {
             this.jobList = jobList;
+            this.context = context;
         }
 
         @Override
@@ -114,15 +126,24 @@ public class WorkerViewJobs extends AppCompatActivity {
             // Set OnClickListener for the View Details button
             holder.buttonViewDetails.setOnClickListener(v -> {
                 // Handle view details button click
-                // You can implement the logic to view job details here
-                Toast.makeText(WorkerViewJobs.this, "View details clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                // Start JobDetailsActivity and pass the job details
+                Intent intent = new Intent(context, JobDetailsActivity.class);
+                intent.putExtra("jobName", job.getJobName());
+                intent.putExtra("jobStartDate", job.getStartDate());
+                intent.putExtra("minExperience", job.getMinExperience());
+                intent.putExtra("location", job.getLocation());
+                intent.putExtra("price", job.getPrice());
+                intent.putExtra("jobDescription", job.getJobdescription());
+                context.startActivity(intent);
             });
 
             // Set OnClickListener for the Apply button
             holder.buttonViewApply.setOnClickListener(v -> {
                 // Handle apply button click
-                // You can implement the logic to apply for the job here
-                Toast.makeText(WorkerViewJobs.this, "Apply clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                // Start ApplyJobActivity and pass the job details
+                Intent intent = new Intent(context, ApplyJobActivity.class);
+                intent.putExtra("jobName", job.getJobName());
+                context.startActivity(intent);
             });
         }
 

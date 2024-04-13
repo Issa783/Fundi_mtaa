@@ -77,7 +77,8 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String minExperience = document.getString("minExperience");
                             String location =  document.getString("location");
                             String price = document.getString("price");
-                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience,location,price);
+                            String jobDescription = document.getString("jobDescription");
+                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience,location,price,jobDescription);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();

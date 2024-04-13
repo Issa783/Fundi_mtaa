@@ -23,7 +23,7 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Start the SearchJobActivity when the card is clicked
-                Intent intent = new Intent(WorkerHomeDashboardActivity.this, SearchJob.class);
+                Intent intent = new Intent(WorkerHomeDashboardActivity.this, WorkerViewJobs.class);
                 startActivity(intent);
             }
         });

@@ -15,6 +15,41 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".ViewApplicants"
+            android:exported="false" />
+        <activity
+            android:name=".ApplyJobActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".ViewApplicantsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewWorkers"
+            android:exported="false" />
+        <activity
+            android:name=".NotificationActivity"
+            android:exported="false" /> <!-- Add Firebase messaging service -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service> <!-- Add default notification channel ID (if using Android Oreo or higher) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
+
+        <activity
+            android:name=".JobDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".JobsDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".WorkerViewJobs"
             android:exported="false" />
         <activity

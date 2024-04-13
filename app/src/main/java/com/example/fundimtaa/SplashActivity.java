@@ -1,6 +1,5 @@
 package com.example.fundimtaa;
 
-// SplashActivity.java
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +13,9 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        // Create notification channel
+        NotificationHelper.createNotificationChannel(this);
 
         // Delay for splash screen
         new Handler().postDelayed(new Runnable() {
