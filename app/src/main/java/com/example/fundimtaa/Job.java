@@ -1,6 +1,7 @@
 package com.example.fundimtaa;
 public class Job {
     private String jobId;
+    private String clientId;
     private String jobName;
     private String startDate;
     private String minExperience;
@@ -8,8 +9,9 @@ public class Job {
     private String price;
    private String jobdescription;
 
-    public Job(String jobId, String jobName, String startDate, String minExperience, String location, String price,String jobdescription) {
+    public Job(String jobId,String clientId, String jobName, String startDate, String minExperience, String location, String price,String jobdescription) {
         this.jobId = jobId;
+        this.clientId = clientId;
         this.jobName = jobName;
         this.startDate = startDate;
         this.minExperience = minExperience;
@@ -22,7 +24,7 @@ public class Job {
     public String getJobId() {
         return jobId;
     }
-
+    public String getClientId(){return clientId;}
     public String getJobName() {
         return jobName;
     }
@@ -41,7 +43,8 @@ public class Job {
     public void setLocation(String location) {
         this.location = location;
     }
-
+public void setClientId(String clientId){
+this.clientId = clientId;}
     public String getPrice() {
         return price;
     }

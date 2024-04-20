@@ -21,7 +21,7 @@
 
         <!-- Start Date -->
         <TextView
-            android:id="@+id/textViewLocation"
+            android:id="@+id/textViewDateOfApplication"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp" />
@@ -36,7 +36,7 @@
 
             <!-- View Details Button -->
             <Button
-                android:id="@+id/buttonViewDetails"
+                android:id="@+id/buttonViewProfile"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:text="View Profile" />

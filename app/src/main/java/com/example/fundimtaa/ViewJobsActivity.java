@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -21,8 +24,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 public class ViewJobsActivity extends AppCompatActivity {
 
@@ -66,19 +67,25 @@ public class ViewJobsActivity extends AppCompatActivity {
     }
 
     private void loadJobs() {
+        // Retrieve current client ID
+        String userId = getCurrentUserId(); // Implement this method to get the current client's ID
+
+        // Query Firestore to fetch jobs posted by the current client
         db.collection("jobs")
+                .whereEqualTo("userId", userId)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         jobList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            String jobId = document.getId(); // Get the document ID as the jobId
                             String jobName = document.getString("jobName");
                             String jobStartDate = document.getString("jobStartDate");
                             String minExperience = document.getString("minExperience");
-                            String location =  document.getString("location");
+                            String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience,location,price,jobDescription);
+                            Job job = new Job(jobId, userId, jobName, jobStartDate, minExperience, location, price, jobDescription);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -88,6 +95,16 @@ public class ViewJobsActivity extends AppCompatActivity {
                 });
     }
 
+    // Implement this method to retrieve the client's ID
+    private String getCurrentUserId() {
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            return currentUser.getUid();
+        } else {
+            return null;
+        }
+    }
 
 
     // ViewHolder for the RecyclerView
@@ -138,11 +155,19 @@ public class ViewJobsActivity extends AppCompatActivity {
             });
 
             // Set OnClickListener for the View Workers button
+            // Set OnClickListener for the View Workers button
             holder.buttonViewWorkers.setOnClickListener(v -> {
-                // Handle view workers button click
-                // You can implement the logic to view workers here
-                Toast.makeText(ViewJobsActivity.this, "View workers clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                // Handle view workers button clic
+
+                // Retrieve the job ID for the selected job
+                String jobId = job.getJobId();
+
+                // Start ViewWorkersActivity and pass the jobId to it
+                Intent intent = new Intent(ViewJobsActivity.this, ViewApplicants.class);
+                intent.putExtra("jobId", jobId);
+                startActivity(intent);
             });
+
         }
 
         @Override

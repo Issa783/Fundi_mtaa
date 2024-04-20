@@ -29,6 +29,12 @@
             android:layout_height="wrap_content"
             android:hint="Date of Application"
             android:inputType="date" />
+        <EditText
+            android:id="@+id/editTextExperience"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="experience"
+            />
 
         <!-- Apply Job Button -->
         <Button

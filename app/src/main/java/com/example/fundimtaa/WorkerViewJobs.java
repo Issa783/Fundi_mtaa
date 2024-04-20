@@ -6,9 +6,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,6 +27,7 @@ public class WorkerViewJobs extends AppCompatActivity {
     private RecyclerView recyclerViewJobs;
     private JobAdapter jobAdapter;
     private List<Job> jobList;
+    private AutoCompleteTextView editTextSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +51,9 @@ public class WorkerViewJobs extends AppCompatActivity {
         // Set adapter to RecyclerView
         recyclerViewJobs.setAdapter(jobAdapter);
 
+        // Initialize search field
+        editTextSearch = findViewById(R.id.editTextSearch);
+
         ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
         imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,6 +65,25 @@ public class WorkerViewJobs extends AppCompatActivity {
 
         // Load jobs from Firestore
         loadJobs();
+
+        // Set up text change listener for search field
+        editTextSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Not used
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Fetch jobs based on the input text
+                fetchJobsStartingWith(s.toString().trim());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Not used
+            }
+        });
     }
 
     private void loadJobs() {
@@ -80,6 +107,17 @@ public class WorkerViewJobs extends AppCompatActivity {
                         Toast.makeText(WorkerViewJobs.this, "Failed to load jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void fetchJobsStartingWith(String searchText) {
+        List<String> suggestionsList = new ArrayList<>();
+        for (Job job : jobList) {
+            if (job.getJobName().toLowerCase().startsWith(searchText.toLowerCase())) {
+                suggestionsList.add(job.getJobName());
+            }
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestionsList);
+        editTextSearch.setAdapter(adapter);
     }
 
     // ViewHolder for the RecyclerView
