@@ -1,41 +1,52 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_margin="16dp"
+    android:background="#F0F0F0"
+    android:elevation="4dp"
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/textViewFilterBy"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="FILTER BY"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textViewName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Name" />
+        <TextView
+            android:id="@+id/textViewFilterBy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FILTER BY"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
 
-    <TextView
-        android:id="@+id/textViewExperience"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Experience" />
+        <TextView
+            android:id="@+id/textViewName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:id="@+id/textViewSpecialization"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Specialization" />
+        <TextView
+            android:id="@+id/textViewExperience"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Experience"
+            android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:id="@+id/textViewClose"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="CLOSE"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:paddingTop="16dp" />
 
-</LinearLayout>
+
+        <TextView
+            android:id="@+id/textViewClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CLOSE"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

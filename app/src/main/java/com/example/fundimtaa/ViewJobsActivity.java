@@ -68,11 +68,11 @@ public class ViewJobsActivity extends AppCompatActivity {
 
     private void loadJobs() {
         // Retrieve current client ID
-        String userId = getCurrentUserId(); // Implement this method to get the current client's ID
+        String clientId = getCurrentClientId(); // Implement this method to get the current client's ID
 
         // Query Firestore to fetch jobs posted by the current client
         db.collection("jobs")
-                .whereEqualTo("userId", userId)
+                .whereEqualTo("clientId", clientId)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -85,7 +85,7 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, userId, jobName, jobStartDate, minExperience, location, price, jobDescription);
+                            Job job = new Job(jobId, clientId, jobName, jobStartDate, minExperience, location, price, jobDescription);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -96,7 +96,7 @@ public class ViewJobsActivity extends AppCompatActivity {
     }
 
     // Implement this method to retrieve the client's ID
-    private String getCurrentUserId() {
+    private String getCurrentClientId() {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {

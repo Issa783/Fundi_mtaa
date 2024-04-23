@@ -13,6 +13,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -23,6 +26,7 @@ import java.util.Map;
 public class PostJobActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +35,8 @@ public class PostJobActivity extends AppCompatActivity {
 
         // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();
+        // Initialize Firebase Authentication
+        mAuth = FirebaseAuth.getInstance();
 
         // Find EditText fields and Post Job Button
         EditText editTextJobName = findViewById(R.id.editTextJobName);
@@ -47,7 +53,6 @@ public class PostJobActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
-
 
         Button buttonPostJob = findViewById(R.id.buttonPostJob);
         // Set OnClickListener for the Job Start Date EditText
@@ -76,30 +81,51 @@ public class PostJobActivity extends AppCompatActivity {
                     return;
                 }
 
+                // Retrieve the current user ID
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+                String clientId = currentUser != null ? currentUser.getUid() : null;
+
                 // Create a HashMap to hold the job details
                 Map<String, Object> jobDetails = new HashMap<>();
                 jobDetails.put("jobName", jobName);
                 jobDetails.put("jobStartDate", jobStartDate);
                 jobDetails.put("jobDescription", jobDescription);
                 jobDetails.put("minExperience", minExperience);
-                jobDetails.put("location",location);
-                jobDetails.put("price",price);
-
-                // Add the job details to Firestore
-                db.collection("jobs").document()
-                        .set(jobDetails)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                jobDetails.put("location", location);
+                jobDetails.put("price", price);
+                jobDetails.put("clientId", clientId); // Add the client ID to the job details
+                // Add the job details to Firestore with a unique jobId
+                db.collection("jobs")
+                        .add(jobDetails)
+                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                             @Override
-                            public void onSuccess(Void aVoid) {
+                            public void onSuccess(DocumentReference documentReference) {
                                 // Job details added successfully
-                                Toast.makeText(PostJobActivity.this, "Job posted successfully", Toast.LENGTH_SHORT).show();
-                                // Clear EditText fields after posting job
-                                editTextJobName.setText("");
-                                editTextJobStartDate.setText("");
-                                editTextJobDescription.setText("");
-                                editTextMinExperience.setText("");
-                                editTextLocation.setText("");
-                                editTextPrice.setText("");
+                                String jobId = documentReference.getId(); // Retrieve the generated document ID
+
+                                // Update the job document with the jobId
+                                documentReference.update("jobId", jobId)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                // Document updated successfully with jobId
+                                                Toast.makeText(PostJobActivity.this, "Job posted successfully", Toast.LENGTH_SHORT).show();
+                                                // Clear EditText fields after posting job
+                                                editTextJobName.setText("");
+                                                editTextJobStartDate.setText("");
+                                                editTextJobDescription.setText("");
+                                                editTextMinExperience.setText("");
+                                                editTextLocation.setText("");
+                                                editTextPrice.setText("");
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(Exception e) {
+                                                // Failed to update document with jobId
+                                                Toast.makeText(PostJobActivity.this, "Failed to update document with jobId: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
@@ -109,8 +135,10 @@ public class PostJobActivity extends AppCompatActivity {
                                 Toast.makeText(PostJobActivity.this, "Failed to post job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
+
             }
         });
+
     }
 
     private void showDatePickerDialog(final EditText editText) {

@@ -26,52 +26,26 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp" />
 
-    <!-- CardView for search and filter -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardViewSearch"
+    <!-- SearchView -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/textViewSearchJobs"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp">
+        android:background="@drawable/search_view_bg"
+        app:iconifiedByDefault="false"
+        app:queryHint="Search here..." />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp">
 
-            <!-- Search field -->
-            <EditText
-                android:id="@+id/editTextSearch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Search Job"
-                android:background="@null"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:textSize="16sp"/>
-
-            <!-- Filter icon -->
-            <ImageView
-                android:id="@+id/imageViewFilter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_filter"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="8dp"/>
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
     <!-- RecyclerView for displaying jobs -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerWorkerViewJobs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/cardViewSearch"
+        android:layout_below="@id/searchView"
         android:padding="16dp" />
 
 </RelativeLayout>

@@ -1,11 +1,12 @@
 package com.example.fundimtaa;
-
 import android.os.Bundle;
+import androidx.appcompat.widget.SearchView;
+import android.text.Editable; // Add import for Editable
+import android.text.TextWatcher; // Add import for TextWatcher
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -26,35 +27,50 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ViewApplicants extends AppCompatActivity {
 
-    private RecyclerView recyclerViewWorkers;
+    private RecyclerView recyclerViewApplicants;
     private WorkerAdapter workerAdapter;
     private List<Worker> workerList;
 
     private FirebaseFirestore db;
 
     private String jobId; // Job ID received from Intent extra
-    private AutoCompleteTextView editTextSearch;
+
     private ImageView imageViewFilter;
+    private List<String> suggestionsList = new ArrayList<>();
+    private ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_applicants);
-        // Initialize views
-        editTextSearch = findViewById(R.id.editTextSearch);
-        imageViewFilter = findViewById(R.id.imageViewFilter);
-        // Set up search suggestions
-        String[] suggestions = {"Suggestion 1", "Suggestion 2", "Suggestion 3"}; // Example suggestions
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestions);
-        editTextSearch.setAdapter(adapter);
 
+        // Initialize views
+
+        imageViewFilter = findViewById(R.id.imageViewFilter);
+
+        // Set up search suggestions
+
+        SearchView searchView = findViewById(R.id.searchView);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Fetch worker names based on the input text
+                fetchWorkerNamesStartingWith(newText.trim());
+                return true;
+            }
+        });
         // Set up filter dialog
         imageViewFilter.setOnClickListener(v -> showFilterDialog());
-
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -63,9 +79,9 @@ public class ViewApplicants extends AppCompatActivity {
         jobId = getIntent().getStringExtra("jobId");
 
         // Initialize RecyclerView
-        recyclerViewWorkers = findViewById(R.id.recyclerViewApplicants);
-        recyclerViewWorkers.setHasFixedSize(true);
-        recyclerViewWorkers.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewApplicants = findViewById(R.id.recyclerWorkerViewApplicants);
+        recyclerViewApplicants.setHasFixedSize(true);
+        recyclerViewApplicants.setLayoutManager(new LinearLayoutManager(this));
 
         // Initialize worker list
         workerList = new ArrayList<>();
@@ -74,11 +90,12 @@ public class ViewApplicants extends AppCompatActivity {
         workerAdapter = new WorkerAdapter(workerList);
 
         // Set adapter to RecyclerView
-        recyclerViewWorkers.setAdapter(workerAdapter);
+        recyclerViewApplicants.setAdapter(workerAdapter);
 
         // Load workers for the specified job
         loadWorkers();
     }
+
     private void showFilterDialog() {
         // Create dialog builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -90,66 +107,64 @@ public class ViewApplicants extends AppCompatActivity {
         // Find views in the dialog layout
         TextView textViewName = dialogView.findViewById(R.id.textViewName);
         TextView textViewExperience = dialogView.findViewById(R.id.textViewExperience);
-// Set up name filter click listener
+        TextView textViewClose = dialogView.findViewById(R.id.textViewClose);
+
+        // Set up name filter click listener
         textViewName.setOnClickListener(v -> {
-            String nameFilter = editTextSearch.getText().toString().trim();
-            if (!nameFilter.isEmpty()) {
-                // Filter workers with matching names
-                List<Worker> filteredWorkers = filterWorkersByName(nameFilter);
-                // Display filtered workers
-                displayFilteredWorkers(filteredWorkers);
-            } else {
-                // No input in search field, handle accordingly
-                Toast.makeText(this, "Please enter a name to search.", Toast.LENGTH_SHORT).show();
-            }
+            // Sort workers by name in ascending order
+            Collections.sort(workerList, (worker1, worker2) -> worker1.getName().compareTo(worker2.getName()));
+            // Notify adapter of data change
+            workerAdapter.notifyDataSetChanged();
             dialog.dismiss(); // Dismiss the dialog after performing the action
         });
 
-// Set up experience filter click listener
+        // Set up experience filter click listener
         textViewExperience.setOnClickListener(v -> {
-            String experienceFilter = editTextSearch.getText().toString().trim();
-            if (!experienceFilter.isEmpty()) {
-                // Filter workers with matching years of experience
-                List<Worker> filteredWorkers = filterWorkersByExperience(experienceFilter);
-                // Display filtered workers
-                displayFilteredWorkers(filteredWorkers);
-            } else {
-                // No input in search field, handle accordingly
-                Toast.makeText(this, "Please enter years of experience to search.", Toast.LENGTH_SHORT).show();
-            }
+            // Sort workers by experience in descending order
+            Collections.sort(workerList, (worker1, worker2) -> {
+                // Parse experience strings into integers
+                int experience1 = parseExperience(worker1.getExperience());
+                int experience2 = parseExperience(worker2.getExperience());
+                // Compare the parsed experience values
+                return Integer.compare(experience2, experience1);
+            });
+            // Notify adapter of data change
+            workerAdapter.notifyDataSetChanged();
             dialog.dismiss(); // Dismiss the dialog after performing the action
         });
-
+        textViewClose.setOnClickListener(v -> dialog.dismiss());
         // Show dialog
         dialog.show();
     }
-    private List<Worker> filterWorkersByName(String name) {
-        List<Worker> filteredWorkers = new ArrayList<>();
-        for (Worker worker : workerList) {
-            if (worker.getName().toLowerCase().contains(name.toLowerCase())) {
-                filteredWorkers.add(worker);
-            }
-        }
-        return filteredWorkers;
+    // Helper method to parse experience strings into integers
+    private int parseExperience(String experience) {
+        // Remove non-numeric characters and parse the remaining string as an integer
+        return Integer.parseInt(experience.replaceAll("[^0-9]", ""));
     }
 
-    private List<Worker> filterWorkersByExperience(String experience) {
-        List<Worker> filteredWorkers = new ArrayList<>();
-        for (Worker worker : workerList) {
-            // Assuming the experience is stored as a string in the Worker object
-            if (worker.getExperience().equals(experience)) {
-                filteredWorkers.add(worker);
-            }
-        }
-        return filteredWorkers;
-    }
-
-    private void displayFilteredWorkers(List<Worker> filteredWorkers) {
-        // Clear the current worker list and add the filtered workers
-        workerList.clear();
-        workerList.addAll(filteredWorkers);
-        // Notify the adapter of the data change
-        workerAdapter.notifyDataSetChanged();
+    private void fetchWorkerNamesStartingWith(String searchText) {
+        // Query Firestore to fetch worker names
+        db.collection("job_applications")
+                .whereEqualTo("jobId", jobId)
+                .whereGreaterThanOrEqualTo("name", searchText)
+                .whereLessThan("name", searchText + "\uf8ff")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        workerList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String workerId = document.getString("workerId");
+                            String name = document.getString("name");
+                            String dateOfApplication = document.getString("dateOfApplication");
+                            String experience = document.getString("experience");
+                            Worker worker = new Worker(workerId, name, dateOfApplication, experience);
+                            workerList.add(worker);
+                        }
+                        workerAdapter.notifyDataSetChanged(); // Notify adapter that data set has changed
+                    } else {
+                        Toast.makeText(ViewApplicants.this, "Failed to fetch workers: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
 
@@ -168,7 +183,7 @@ public class ViewApplicants extends AppCompatActivity {
                                 String name = document.getString("name");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name, dateOfApplication,experience);
+                                Worker worker = new Worker(workerId, name, dateOfApplication, experience);
                                 workerList.add(worker);
                             }
                             workerAdapter.notifyDataSetChanged();
@@ -179,7 +194,6 @@ public class ViewApplicants extends AppCompatActivity {
                 });
     }
 
-    // Adapter for the RecyclerView
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
 
         private List<Worker> workerList;
@@ -197,7 +211,7 @@ public class ViewApplicants extends AppCompatActivity {
         @Override
         public void onBindViewHolder(WorkerViewHolder holder, int position) {
             Worker worker = workerList.get(position);
-            holder.textViewWorkerName.setText(worker.getName());
+            holder.textViewWorkerName.setText("Name: " + worker.getName());
             holder.textViewDateOfApplication.setText("Applied on: " + worker.getDateOfApplication());
             holder.textViewExperience.setText("Experience: " + worker.getExperience());
 
@@ -228,7 +242,6 @@ public class ViewApplicants extends AppCompatActivity {
         }
     }
 
-    // ViewHolder for the RecyclerView
     private static class WorkerViewHolder extends RecyclerView.ViewHolder {
         TextView textViewWorkerName;
         TextView textViewDateOfApplication;

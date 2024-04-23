@@ -7,9 +7,9 @@ public class Job {
     private String minExperience;
     private  String location;
     private String price;
-   private String jobdescription;
+   private String jobDescription;
 
-    public Job(String jobId,String clientId, String jobName, String startDate, String minExperience, String location, String price,String jobdescription) {
+    public Job(String jobId,String clientId, String jobName, String startDate, String minExperience, String location, String price,String jobDescription) {
         this.jobId = jobId;
         this.clientId = clientId;
         this.jobName = jobName;
@@ -17,7 +17,7 @@ public class Job {
         this.minExperience = minExperience;
         this.location = location;
         this.price = price;
-        this.jobdescription = jobdescription;
+        this.jobDescription = jobDescription;
     }
 
     // Getter methods
@@ -53,12 +53,12 @@ this.clientId = clientId;}
         this.price = price;
     }
 
-    public void setJobdescription(String jobdescription) {
-        this.jobdescription = jobdescription;
+    public void setJobDescription(String jobDescription) {
+        this.jobDescription = jobDescription;
     }
 
-    public String getJobdescription() {
-        return jobdescription;
+    public String getJobDescription() {
+        return jobDescription;
     }
 }
 

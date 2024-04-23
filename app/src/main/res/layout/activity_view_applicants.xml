@@ -43,17 +43,19 @@
             android:padding="16dp">
 
             <!-- Search field -->
-
-            <AutoCompleteTextView
-                android:id="@+id/editTextSearch"
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/searchView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Search Job"
-                android:background="@null"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:textSize="16sp"/>
+                android:queryHint="Search workers"
+                app:iconifiedByDefault="false"
+                app:queryBackground="@drawable/search_view_bg"
+                app:searchIcon="@null"
+                app:closeIcon="@null"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/imageViewFilter" />
+
             <!-- Filter icon -->
             <ImageView
                 android:id="@+id/imageViewFilter"
@@ -66,13 +68,13 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
+
     <!-- RecyclerView for displaying jobs -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewApplicants "
+        android:id="@+id/recyclerWorkerViewApplicants"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/cardViewSearch"
         android:padding="16dp" />
 
 </RelativeLayout>
-

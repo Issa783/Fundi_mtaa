@@ -1,4 +1,5 @@
 package com.example.fundimtaa;
+import androidx.appcompat.widget.SearchView;
 
 import android.content.Context; // Add import for Context
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -27,7 +27,7 @@ public class WorkerViewJobs extends AppCompatActivity {
     private RecyclerView recyclerViewJobs;
     private JobAdapter jobAdapter;
     private List<Job> jobList;
-    private AutoCompleteTextView editTextSearch;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +52,22 @@ public class WorkerViewJobs extends AppCompatActivity {
         recyclerViewJobs.setAdapter(jobAdapter);
 
         // Initialize search field
-        editTextSearch = findViewById(R.id.editTextSearch);
+        searchView = findViewById(R.id.searchView);
+
+        // Set up text change listener for search field
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Fetch jobs based on the input text
+                fetchJobsStartingWith(newText.trim());
+                return true;
+            }
+        });
 
         ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
         imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
@@ -65,25 +80,6 @@ public class WorkerViewJobs extends AppCompatActivity {
 
         // Load jobs from Firestore
         loadJobs();
-
-        // Set up text change listener for search field
-        editTextSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Not used
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Fetch jobs based on the input text
-                fetchJobsStartingWith(s.toString().trim());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // Not used
-            }
-        });
     }
 
     private void loadJobs() {
@@ -93,13 +89,15 @@ public class WorkerViewJobs extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         jobList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            String jobId = document.getId();
+                            String clientId = document.getString("clientId");
                             String jobName = document.getString("jobName");
                             String jobStartDate = document.getString("jobStartDate");
                             String minExperience = document.getString("minExperience");
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(document.getId(), jobName, jobStartDate, minExperience, location, price, jobDescription);
+                            Job job = new Job(jobId, clientId, jobName, jobStartDate, minExperience, location, price, jobDescription);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -110,14 +108,13 @@ public class WorkerViewJobs extends AppCompatActivity {
     }
 
     private void fetchJobsStartingWith(String searchText) {
-        List<String> suggestionsList = new ArrayList<>();
+        List<Job> filteredList = new ArrayList<>();
         for (Job job : jobList) {
             if (job.getJobName().toLowerCase().startsWith(searchText.toLowerCase())) {
-                suggestionsList.add(job.getJobName());
+                filteredList.add(job);
             }
         }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestionsList);
-        editTextSearch.setAdapter(adapter);
+        jobAdapter.setJobs(filteredList);
     }
 
     // ViewHolder for the RecyclerView
@@ -139,13 +136,17 @@ public class WorkerViewJobs extends AppCompatActivity {
     }
 
     private class JobAdapter extends RecyclerView.Adapter<JobViewHolder> {
-
         private List<Job> jobList;
         private Context context;
 
         public JobAdapter(Context context, List<Job> jobList) {
             this.jobList = jobList;
             this.context = context;
+        }
+
+        public void setJobs(List<Job> jobs) {
+            this.jobList = jobs;
+            notifyDataSetChanged();
         }
 
         @Override
@@ -171,15 +172,19 @@ public class WorkerViewJobs extends AppCompatActivity {
                 intent.putExtra("minExperience", job.getMinExperience());
                 intent.putExtra("location", job.getLocation());
                 intent.putExtra("price", job.getPrice());
-                intent.putExtra("jobDescription", job.getJobdescription());
+                intent.putExtra("jobDescription", job.getJobDescription());
                 context.startActivity(intent);
             });
 
             // Set OnClickListener for the Apply button
             holder.buttonViewApply.setOnClickListener(v -> {
                 // Handle apply button click
+                // Retrieve the job ID for the selected job
+                String jobId = job.getJobId();
+
                 // Start ApplyJobActivity and pass the job details
                 Intent intent = new Intent(context, ApplyJobActivity.class);
+                intent.putExtra("jobId", jobId);
                 intent.putExtra("jobName", job.getJobName());
                 context.startActivity(intent);
             });
