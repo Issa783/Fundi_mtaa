@@ -2,6 +2,7 @@ package com.example.fundimtaa;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -19,6 +20,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -28,6 +31,9 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -92,6 +98,7 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                handleLogin();
 
                 // Perform login with Firebase Authentication
                 mAuth.signInWithEmailAndPassword(email, password)
@@ -184,6 +191,101 @@ public class LoginActivity extends AppCompatActivity {
                 signInWithGoogle();
             }
         });
+    }
+    private void handleLogin() {
+        // After successful login, retrieve the device token
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            String deviceToken = task.getResult();
+                            // Save the device token along with user information in the database
+                            saveDeviceToken(deviceToken);
+                        } else {
+                            // Failed to retrieve device token
+                            Log.e("LoginActivity", "Failed to get device token");
+                        }
+                    }
+                });
+    }
+
+    private void saveDeviceToken(String deviceToken) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // Get the user ID
+            String userId = currentUser.getUid();
+
+            // Create a map to store user data including the device token
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("deviceToken", deviceToken);
+            // Add other user data as needed
+
+            // Determine the user role (client or worker) based on Firestore collections
+            mFirestore.collection("clients").document(userId).get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot clientDocument = task.getResult();
+                                if (clientDocument.exists()) {
+                                    // User is a client, save device token in "clients" collection
+                                    mFirestore.collection("clients").document(userId)
+                                            .update(userData)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Log.d("LoginActivity", "Device token saved for client");
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.e("LoginActivity", "Error saving device token for client: " + e.getMessage());
+                                                }
+                                            });
+                                } else {
+                                    // User is not a client, check if they are a worker
+                                    mFirestore.collection("workers").document(userId).get()
+                                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    if (task.isSuccessful()) {
+                                                        DocumentSnapshot workerDocument = task.getResult();
+                                                        if (workerDocument.exists()) {
+                                                            // User is a worker, save device token in "workers" collection
+                                                            mFirestore.collection("workers").document(userId)
+                                                                    .update(userData)
+                                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                        @Override
+                                                                        public void onSuccess(Void aVoid) {
+                                                                            Log.d("LoginActivity", "Device token saved for worker");
+                                                                        }
+                                                                    })
+                                                                    .addOnFailureListener(new OnFailureListener() {
+                                                                        @Override
+                                                                        public void onFailure(@NonNull Exception e) {
+                                                                            Log.e("LoginActivity", "Error saving device token for worker: " + e.getMessage());
+                                                                        }
+                                                                    });
+                                                        } else {
+                                                            // User is neither a client nor a worker
+                                                            Log.e("LoginActivity", "User role not found");
+                                                        }
+                                                    } else {
+                                                        // Error fetching worker document
+                                                        Log.e("LoginActivity", "Error fetching worker document: " + task.getException().getMessage());
+                                                    }
+                                                }
+                                            });
+                                }
+                            } else {
+                                // Error fetching client document
+                                Log.e("LoginActivity", "Error fetching client document: " + task.getException().getMessage());
+                            }
+                        }
+                    });
+        }
     }
 
     private void signInWithGoogle() {
