@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,7 +34,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ViewApplicants extends AppCompatActivity {
 
@@ -41,6 +45,7 @@ public class ViewApplicants extends AppCompatActivity {
     private List<Worker> workerList;
 
     private FirebaseFirestore db;
+    private FirebaseFirestore mFirestore;
 
     private String jobId; // Job ID received from Intent extra
 
@@ -56,6 +61,7 @@ public class ViewApplicants extends AppCompatActivity {
         // Initialize views
 
         imageViewFilter = findViewById(R.id.imageViewFilter);
+        mFirestore = FirebaseFirestore.getInstance();
 
         // Set up search suggestions
 
@@ -91,7 +97,7 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
 
         // Initialize adapter
-        workerAdapter = new WorkerAdapter(workerList);
+        workerAdapter = new WorkerAdapter(workerList,jobId);
 
         // Set adapter to RecyclerView
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -215,14 +221,82 @@ public class ViewApplicants extends AppCompatActivity {
                     }
                 });
     }
+    private void retrieveWorkerDeviceToken(String jobId) {
+        mFirestore.collection("job_applications").whereEqualTo("jobId", jobId).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                        String workerId = documentSnapshot.getString("workerId");
+                        if (workerId != null) {
+                            // Retrieve the worker's device token
+                            mFirestore.collection("workers").document(workerId).get()
+                                    .addOnSuccessListener(workerDocument -> {
+                                        if (workerDocument.exists()) {
+                                            String workerDeviceToken = workerDocument.getString("deviceToken");
+                                            if (workerDeviceToken != null) {
+                                                // Now you have the worker's device token
+                                                // Send notification to the worker
+                                                sendNotificationToWorker(workerDeviceToken);
+                                            } else {
+                                                Toast.makeText(ViewApplicants.this, "Worker device token not found", Toast.LENGTH_SHORT).show();
+                                            }
+                                        } else {
+                                            Toast.makeText(ViewApplicants.this, "Worker details not found", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(ViewApplicants.this, "Error fetching worker details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(ViewApplicants.this, "Error fetching job applications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void sendNotificationToWorker(String workerDeviceToken) {
+        String message = "You have been assigned a job.";
+        String title = "Job Assignment";
+
+        Map<String, String> notificationMessage = new HashMap<>();
+        notificationMessage.put("title", title);
+        notificationMessage.put("message", message);
+
+        // Send the notification
+        FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(workerDeviceToken + "@gcm.googleapis.com")
+                .setMessageId(Integer.toString((int) System.currentTimeMillis()))
+                .setData(notificationMessage)
+                .build());
+    }
+
+    // Method to handle the result of sending the notification
+    private void handleNotificationResult(Task<Void> task) {
+        task.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                // Notification sent successfully
+                Toast.makeText(ViewApplicants.this, "Notification sent successfully", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // Failed to send notification
+                Toast.makeText(ViewApplicants.this, "Failed to send notification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+
 
 
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
 
         private List<Worker> workerList;
+        private String jobId;
 
-        public WorkerAdapter(List<Worker> workerList) {
+        public WorkerAdapter(List<Worker> workerList,String jobId) {
             this.workerList = workerList;
+            this.jobId = jobId;
         }
 
         @Override
@@ -251,7 +325,13 @@ public class ViewApplicants extends AppCompatActivity {
             // Set OnClickListener for the "Assign Job" button
             holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(View v) {    // Retrieve the worker associated with this item
+                    Worker worker = workerList.get(holder.getAdapterPosition());
+
+                    // Retrieve the worker's device token and send notification
+                    retrieveWorkerDeviceToken(worker.getWorkerId());
+                    Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                    handleNotificationResult();
 
                 }
             });
