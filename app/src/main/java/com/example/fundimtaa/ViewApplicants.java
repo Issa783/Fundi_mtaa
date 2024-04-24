@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,8 +24,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.messaging.RemoteMessage;
+
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,6 +115,12 @@ public class ViewApplicants extends AppCompatActivity {
 
         // Set up name filter click listener
         textViewName.setOnClickListener(v -> {
+            // Change text color to indicate selection
+            textViewName.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+
+            // Reset other text view colors
+            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+
             // Sort workers by name in ascending order
             Collections.sort(workerList, (worker1, worker2) -> worker1.getName().compareTo(worker2.getName()));
             // Notify adapter of data change
@@ -120,6 +130,12 @@ public class ViewApplicants extends AppCompatActivity {
 
         // Set up experience filter click listener
         textViewExperience.setOnClickListener(v -> {
+            // Change text color to indicate selection
+            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+
+            // Reset other text view colors
+            textViewName.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+
             // Sort workers by experience in descending order
             Collections.sort(workerList, (worker1, worker2) -> {
                 // Parse experience strings into integers
@@ -143,22 +159,27 @@ public class ViewApplicants extends AppCompatActivity {
     }
 
     private void fetchWorkerNamesStartingWith(String searchText) {
+        // Convert the search text to lowercase for case-insensitive search
+        String searchTextLowerCase = searchText.toLowerCase();
+
         // Query Firestore to fetch worker names
         db.collection("job_applications")
                 .whereEqualTo("jobId", jobId)
-                .whereGreaterThanOrEqualTo("name", searchText)
-                .whereLessThan("name", searchText + "\uf8ff")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         workerList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String workerId = document.getString("workerId");
                             String name = document.getString("name");
-                            String dateOfApplication = document.getString("dateOfApplication");
-                            String experience = document.getString("experience");
-                            Worker worker = new Worker(workerId, name, dateOfApplication, experience);
-                            workerList.add(worker);
+
+                            // Check if the name starts with the search text (case-insensitive)
+                            if (name.toLowerCase().startsWith(searchTextLowerCase)) {
+                                String workerId = document.getString("workerId");
+                                String dateOfApplication = document.getString("dateOfApplication");
+                                String experience = document.getString("experience");
+                                Worker worker = new Worker(workerId, name, dateOfApplication, experience);
+                                workerList.add(worker);
+                            }
                         }
                         workerAdapter.notifyDataSetChanged(); // Notify adapter that data set has changed
                     } else {
@@ -166,6 +187,7 @@ public class ViewApplicants extends AppCompatActivity {
                     }
                 });
     }
+
 
 
     private void loadWorkers() {
@@ -193,6 +215,7 @@ public class ViewApplicants extends AppCompatActivity {
                     }
                 });
     }
+
 
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
 
@@ -225,15 +248,15 @@ public class ViewApplicants extends AppCompatActivity {
                 }
             });
 
-            // Set OnClickListener for the "Apply" button
-            holder.buttonApply.setOnClickListener(new View.OnClickListener() {
+            // Set OnClickListener for the "Assign Job" button
+            holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // Handle apply button click
-                    // Implement the logic to apply the job to the worker
-                    Toast.makeText(ViewApplicants.this, "Apply clicked for worker: " + worker.getName(), Toast.LENGTH_SHORT).show();
+
                 }
             });
+
+
         }
 
         @Override
@@ -247,7 +270,7 @@ public class ViewApplicants extends AppCompatActivity {
         TextView textViewDateOfApplication;
         TextView textViewExperience;
         Button buttonViewProfile;
-        Button buttonApply;
+        Button buttonAssignJob;
 
         public WorkerViewHolder(View itemView) {
             super(itemView);
@@ -255,7 +278,7 @@ public class ViewApplicants extends AppCompatActivity {
             textViewDateOfApplication = itemView.findViewById(R.id.textViewDateOfApplication);
             textViewExperience = itemView.findViewById(R.id.textViewExperience);
             buttonViewProfile = itemView.findViewById(R.id.buttonViewProfile);
-            buttonApply = itemView.findViewById(R.id.buttonApply);
+            buttonAssignJob = itemView.findViewById(R.id.buttonAssignJob);
         }
     }
 }

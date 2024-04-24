@@ -33,7 +33,7 @@
             android:id="@+id/editTextExperience"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="experience"
+            android:hint="Work Experience"
             />
 
         <!-- Apply Job Button -->

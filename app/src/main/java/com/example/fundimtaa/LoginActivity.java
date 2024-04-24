@@ -102,8 +102,6 @@ public class LoginActivity extends AppCompatActivity {
                                     // Sign in success, update UI with the signed-in user's information
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     Toast.makeText(LoginActivity.this, "Authentication succeeded.", Toast.LENGTH_SHORT).show();
-                                    // Subscribe the client to the "client_notifications" topic
-                                    FirebaseMessaging.getInstance().subscribeToTopic("client_notifications");
 
                                     // Get user's role from Firestore and redirect accordingly
                                     String userId = user.getUid();
@@ -114,8 +112,19 @@ public class LoginActivity extends AppCompatActivity {
                                                     if (task.isSuccessful()) {
                                                         DocumentSnapshot document = task.getResult();
                                                         if (document.exists()) {
-                                                            // User is a client
-                                                            startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                            // User is a client, subscribe to "job_postings" topic
+                                                            FirebaseMessaging.getInstance().subscribeToTopic("job_postings")
+                                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                        @Override
+                                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                                            if (task.isSuccessful()) {
+                                                                                Toast.makeText(LoginActivity.this, "Subscribed to job_postings", Toast.LENGTH_SHORT).show();
+                                                                                startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                                            } else {
+                                                                                Toast.makeText(LoginActivity.this, "Failed to subscribe: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                                            }
+                                                                        }
+                                                                    });
                                                         } else {
                                                             // User is not a client, check if they are a worker
                                                             mFirestore.collection("workers").document(userId).get()
@@ -125,8 +134,19 @@ public class LoginActivity extends AppCompatActivity {
                                                                             if (task.isSuccessful()) {
                                                                                 DocumentSnapshot document = task.getResult();
                                                                                 if (document.exists()) {
-                                                                                    // User is a worker
-                                                                                    startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
+                                                                                    // User is a worker, subscribe to "job_applications" topic
+                                                                                    FirebaseMessaging.getInstance().subscribeToTopic("job_applications")
+                                                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                                @Override
+                                                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                                                    if (task.isSuccessful()) {
+                                                                                                        Toast.makeText(LoginActivity.this, "Subscribed to job_applications", Toast.LENGTH_SHORT).show();
+                                                                                                        startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
+                                                                                                    } else {
+                                                                                                        Toast.makeText(LoginActivity.this, "Failed to subscribe: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                                                                    }
+                                                                                                }
+                                                                                            });
                                                                                 } else {
                                                                                     // User is neither a client nor a worker
                                                                                     Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();

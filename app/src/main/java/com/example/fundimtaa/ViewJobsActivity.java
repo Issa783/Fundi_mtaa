@@ -111,7 +111,7 @@ public class ViewJobsActivity extends AppCompatActivity {
     private static class JobViewHolder extends RecyclerView.ViewHolder {
         TextView textViewJobName;
         TextView textViewPublishedOn;
-        TextView textViewPrice;
+        TextView textViewLocation;
         Button buttonManage;
         Button buttonViewWorkers;
 
@@ -119,7 +119,7 @@ public class ViewJobsActivity extends AppCompatActivity {
             super(itemView);
             textViewJobName = itemView.findViewById(R.id.textViewJobName);
             textViewPublishedOn = itemView.findViewById(R.id.textViewPublishedOn);
-            textViewPrice = itemView.findViewById(R.id.textViewPrice);
+            textViewLocation = itemView.findViewById(R.id.textViewLocation);
             buttonManage = itemView.findViewById(R.id.buttonManage);
             buttonViewWorkers = itemView.findViewById(R.id.buttonViewWorkers);
         }
@@ -144,8 +144,8 @@ public class ViewJobsActivity extends AppCompatActivity {
         public void onBindViewHolder(JobViewHolder holder, int position) {
             Job job = jobList.get(position);
             holder.textViewJobName.setText("Job Name: " + job.getJobName());
-            holder.textViewPublishedOn.setText("Published on: " + job.getStartDate());
-            holder.textViewPrice.setText("Price: " + job.getPrice());
+            holder.textViewPublishedOn.setText("Posted on: " + job.getStartDate());
+            holder.textViewLocation.setText("Location: " + job.getLocation());
 
             // Set OnClickListener for the Manage button
             holder.buttonManage.setOnClickListener(v -> {

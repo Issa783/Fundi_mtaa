@@ -48,7 +48,7 @@
 
             <!-- Apply Button -->
             <Button
-                android:id="@+id/buttonApply"
+                android:id="@+id/buttonAssignJob"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:text="Assign Job" />
