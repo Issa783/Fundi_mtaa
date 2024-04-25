@@ -268,6 +268,8 @@ public class ViewApplicants extends AppCompatActivity {
                 .build());
     }
 
+
+
     // Method to handle the result of sending the notification
     private void handleNotificationResult(Task<Void> task) {
         task.addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -331,7 +333,7 @@ public class ViewApplicants extends AppCompatActivity {
                     // Retrieve the worker's device token and send notification
                     retrieveWorkerDeviceToken(worker.getWorkerId());
                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
-                    handleNotificationResult();
+
 
                 }
             });
