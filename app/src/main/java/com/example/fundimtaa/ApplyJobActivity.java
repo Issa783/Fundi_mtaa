@@ -28,6 +28,7 @@ public class ApplyJobActivity extends AppCompatActivity {
     private EditText editTextDate;
     private EditText editTextExperience;
     private Button buttonApplyJob;
+    private String jobId;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -95,6 +96,7 @@ public class ApplyJobActivity extends AppCompatActivity {
     private void saveJobApplication(String name, String date, String experience) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String workerId = currentUser != null ? currentUser.getUid() : null;
+        jobId = getIntent().getStringExtra("jobId");
 
         if (workerId == null) {
             Toast.makeText(ApplyJobActivity.this, "User not authenticated", Toast.LENGTH_SHORT).show();
@@ -106,6 +108,7 @@ public class ApplyJobActivity extends AppCompatActivity {
         application.put("dateOfApplication", date);
         application.put("experience", experience);
         application.put("workerId", workerId);
+        application.put("jobId",jobId);
 
         db.collection("job_applications")
                 .add(application)
