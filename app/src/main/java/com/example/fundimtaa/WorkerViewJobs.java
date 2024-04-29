@@ -97,7 +97,8 @@ public class WorkerViewJobs extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId, jobName, jobStartDate, minExperience, location, price, jobDescription);
+                            Job job = new Job(jobId, clientId, jobName, jobStartDate,
+                                    minExperience, location, price, jobDescription,false);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();

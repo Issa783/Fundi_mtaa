@@ -85,7 +85,7 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId, jobName, jobStartDate, minExperience, location, price, jobDescription);
+                            Job job = new Job(jobId, clientId, jobName, jobStartDate, minExperience, location, price, jobDescription,false);
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -165,6 +165,7 @@ public class ViewJobsActivity extends AppCompatActivity {
                 // Start ViewWorkersActivity and pass the jobId to it
                 Intent intent = new Intent(ViewJobsActivity.this, ViewApplicants.class);
                 intent.putExtra("jobId", jobId);
+                intent.putExtra("jobName", job.getJobName());
                 startActivity(intent);
             });
 

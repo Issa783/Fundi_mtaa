@@ -8,8 +8,11 @@ public class Job {
     private  String location;
     private String price;
    private String jobDescription;
+   private  boolean isCompleted;
 
-    public Job(String jobId,String clientId, String jobName, String startDate, String minExperience, String location, String price,String jobDescription) {
+    public Job(String jobId,String clientId, String jobName,
+               String startDate, String minExperience,
+               String location, String price,String jobDescription,boolean isCompleted) {
         this.jobId = jobId;
         this.clientId = clientId;
         this.jobName = jobName;
@@ -18,6 +21,7 @@ public class Job {
         this.location = location;
         this.price = price;
         this.jobDescription = jobDescription;
+        this.isCompleted = isCompleted;
     }
 
     // Getter methods
@@ -59,6 +63,14 @@ this.clientId = clientId;}
 
     public String getJobDescription() {
         return jobDescription;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
     }
 }
 

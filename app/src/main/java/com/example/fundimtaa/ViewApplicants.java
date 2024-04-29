@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -35,6 +36,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +90,7 @@ public class ViewApplicants extends AppCompatActivity {
 
         // Get the job ID from Intent extra
         jobId = getIntent().getStringExtra("jobId");
+        String jobName = getIntent().getStringExtra("jobName");
 
         // Initialize RecyclerView
         recyclerViewApplicants = findViewById(R.id.recyclerWorkerViewApplicants);
@@ -98,7 +101,7 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
 
         // Initialize adapter
-        workerAdapter = new WorkerAdapter(workerList,jobId);
+        workerAdapter = new WorkerAdapter(workerList,jobId,jobName);
 
         // Set adapter to RecyclerView
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -287,57 +290,17 @@ public class ViewApplicants extends AppCompatActivity {
             }
         });
     }
-
-    // Method to retrieve job details
-    private void retrieveJobDetails(String jobId, JobDetailsListener listener) {
-        FirebaseFirestore.getInstance()
-                .collection("jobs")
-                .document(jobId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Job details retrieved successfully
-                        Job job = documentSnapshot.toObject(Job.class);
-                        if (job != null) {
-                            listener.onJobDetailsRetrieved(job);
-                        } else {
-                            listener.onFailure("Failed to retrieve job details.");
-                        }
-                    } else {
-                        listener.onFailure("Job not found.");
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    listener.onFailure("Error retrieving job details: " + e.getMessage());
-                });
-    }
-
-    // Method to open worker application history interface
-    private void openWorkerApplicationHistory(Worker worker, Job job) {
-        Intent intent = new Intent(ViewApplicants.this, WorkerApplicationHistory.class);
-        intent.putExtra("workerId", worker.getWorkerId());
-        intent.putExtra("jobId", job.getJobId());
-        startActivity(intent);
-    }
-
-    // Interface for retrieving job details
-    interface JobDetailsListener {
-        void onJobDetailsRetrieved(Job job);
-        void onFailure(String errorMessage);
-    }
-
-
-
-
-
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
 
         private List<Worker> workerList;
         private String jobId;
+        private String jobName; // Add jobName field
 
-        public WorkerAdapter(List<Worker> workerList,String jobId) {
+
+        public WorkerAdapter(List<Worker> workerList,String jobId,String jobName) {
             this.workerList = workerList;
             this.jobId = jobId;
+            this.jobName = jobName; // Assign the jobName
         }
 
         @Override
@@ -364,33 +327,36 @@ public class ViewApplicants extends AppCompatActivity {
             });
 
             // Set OnClickListener for the "Assign Job" button
+            // Set OnClickListener for the "Assign Job" button
             holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {    // Retrieve the worker associated with this item
+                public void onClick(View v) {
+                    // Retrieve the worker associated with this item
                     Worker worker = workerList.get(holder.getAdapterPosition());
 
-                    // Retrieve the worker's device token and send notification
-                    retrieveWorkerDeviceToken(worker.getWorkerId());
-                    Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
-                    // Retrieve the details of the job
-                    retrieveJobDetails(jobId, new JobDetailsListener() {
-                        @Override
-                        public void onJobDetailsRetrieved(Job job) {
-                            // Open the application history interface of the worker
-                            openWorkerApplicationHistory(worker, job);
-                        }
+                    // Store the assigned job details in Firestore
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    Map<String, Object> assignedJob = new HashMap<>();
+                    assignedJob.put("workerId", worker.getWorkerId());
+                    assignedJob.put("jobId", jobId);
+                    assignedJob.put("jobName", jobName);
 
-                        @Override
-                        public void onFailure(String errorMessage) {
-                            // Handle failure to retrieve job details
-                            Toast.makeText(ViewApplicants.this, errorMessage, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    assignedJob.put("assignedDate", new Date()); // You can use the current date/time as the assigned date
+                    db.collection("AssignedJobs")
+                            .add(assignedJob)
+                            .addOnSuccessListener(documentReference -> {
+                                // Job assigned successfully, you can display a message or perform any other action if needed
+                                Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                // Handle errors if any
+                                Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                 }
+            });
 
 
-                });
-            };
+        };
 
         @Override
         public int getItemCount() {
