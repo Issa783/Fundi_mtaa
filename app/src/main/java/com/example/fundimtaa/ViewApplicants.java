@@ -333,7 +333,6 @@ public class ViewApplicants extends AppCompatActivity {
                 public void onClick(View v) {
                     // Retrieve the worker associated with this item
                     Worker worker = workerList.get(holder.getAdapterPosition());
-
                     // Store the assigned job details in Firestore
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                     Map<String, Object> assignedJob = new HashMap<>();
@@ -357,7 +356,6 @@ public class ViewApplicants extends AppCompatActivity {
 
 
         };
-
         @Override
         public int getItemCount() {
             return workerList.size();
