@@ -91,6 +91,8 @@ public class ViewApplicants extends AppCompatActivity {
         // Get the job ID from Intent extra
         jobId = getIntent().getStringExtra("jobId");
         String jobName = getIntent().getStringExtra("jobName");
+        String startDate = getIntent().getStringExtra("jobStartDate");
+        String clientId = getIntent().getStringExtra("clientId");
 
         // Initialize RecyclerView
         recyclerViewApplicants = findViewById(R.id.recyclerWorkerViewApplicants);
@@ -101,7 +103,7 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
 
         // Initialize adapter
-        workerAdapter = new WorkerAdapter(workerList,jobId,jobName);
+        workerAdapter = new WorkerAdapter(workerList,jobId,jobName,startDate,clientId);
 
         // Set adapter to RecyclerView
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -294,13 +296,17 @@ public class ViewApplicants extends AppCompatActivity {
 
         private List<Worker> workerList;
         private String jobId;
-        private String jobName; // Add jobName field
+        private String jobName;// Add jobName field
+        private String startDate;
+        private String clientId;
 
 
-        public WorkerAdapter(List<Worker> workerList,String jobId,String jobName) {
+        public WorkerAdapter(List<Worker> workerList,String jobId,String jobName,String startDate,String clientId) {
             this.workerList = workerList;
             this.jobId = jobId;
             this.jobName = jobName; // Assign the jobName
+            this.startDate = startDate;
+            this.clientId = clientId;
         }
 
         @Override
@@ -337,8 +343,10 @@ public class ViewApplicants extends AppCompatActivity {
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                     Map<String, Object> assignedJob = new HashMap<>();
                     assignedJob.put("workerId", worker.getWorkerId());
+                    assignedJob.put("clientId", clientId);
                     assignedJob.put("jobId", jobId);
                     assignedJob.put("jobName", jobName);
+                    assignedJob.put("jobStartDate", startDate);
 
                     assignedJob.put("assignedDate", new Date()); // You can use the current date/time as the assigned date
                     db.collection("AssignedJobs")

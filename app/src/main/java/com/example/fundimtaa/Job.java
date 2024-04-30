@@ -9,6 +9,10 @@ public class Job {
     private String price;
    private String jobDescription;
    private  boolean isCompleted;
+    // Default constructor required by Firestore
+    public Job() {
+        // Default constructor is necessary for Firestore
+    }
 
     public Job(String jobId,String clientId, String jobName,
                String startDate, String minExperience,

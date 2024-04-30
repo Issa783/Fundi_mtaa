@@ -152,6 +152,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
 
         private TextView textViewJobName;
         private TextView textViewJobStartDate;
+
         private  Button buttonViewJobDetails;
         private Button buttonMarkAsDone;
         private List<Job> jobList;
@@ -160,7 +161,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
             super(itemView);
             this.jobList = jobList;
             textViewJobName = itemView.findViewById(R.id.textViewJobName);
-            textViewJobStartDate = itemView.findViewById(R.id.textViewJobStartDate);
+            textViewJobStartDate = itemView.findViewById(R.id.textViewJobDate);
             buttonViewJobDetails =  itemView.findViewById(R.id.buttonViewJobDetails);
             buttonMarkAsDone = itemView.findViewById(R.id.buttonMarkAsDone);
 

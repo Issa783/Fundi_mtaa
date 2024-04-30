@@ -166,6 +166,8 @@ public class ViewJobsActivity extends AppCompatActivity {
                 Intent intent = new Intent(ViewJobsActivity.this, ViewApplicants.class);
                 intent.putExtra("jobId", jobId);
                 intent.putExtra("jobName", job.getJobName());
+                intent.putExtra("jobStartDate", job.getStartDate());
+                intent.putExtra("clientId",job.getClientId());
                 startActivity(intent);
             });
 
