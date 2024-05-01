@@ -97,7 +97,7 @@ public class WorkerViewJobs extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId, jobName, jobStartDate,
+                            Job job = new Job(jobId, clientId, null,jobName, jobStartDate,
                                     minExperience, location, price, jobDescription,false);
                             jobList.add(job);
                         }
@@ -160,7 +160,7 @@ public class WorkerViewJobs extends AppCompatActivity {
         public void onBindViewHolder(JobViewHolder holder, int position) {
             Job job = jobList.get(position);
             holder.textViewJobName.setText("Job Name: " + job.getJobName());
-            holder.textViewStartDate.setText("Start Date: " + job.getStartDate());
+            holder.textViewStartDate.setText("Start Date: " + job.getJobStartDate());
             holder.textViewPrice.setText("Price: " + job.getPrice());
 
             // Set OnClickListener for the View Details button
@@ -169,7 +169,7 @@ public class WorkerViewJobs extends AppCompatActivity {
                 // Start JobDetailsActivity and pass the job details
                 Intent intent = new Intent(context, JobDetailsActivity.class);
                 intent.putExtra("jobName", job.getJobName());
-                intent.putExtra("jobStartDate", job.getStartDate());
+                intent.putExtra("jobStartDate", job.getJobStartDate());
                 intent.putExtra("minExperience", job.getMinExperience());
                 intent.putExtra("location", job.getLocation());
                 intent.putExtra("price", job.getPrice());

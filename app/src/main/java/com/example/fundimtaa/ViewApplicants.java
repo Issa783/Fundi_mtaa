@@ -93,6 +93,7 @@ public class ViewApplicants extends AppCompatActivity {
         String jobName = getIntent().getStringExtra("jobName");
         String startDate = getIntent().getStringExtra("jobStartDate");
         String clientId = getIntent().getStringExtra("clientId");
+        String documentId = getIntent().getStringExtra("documentId");
 
         // Initialize RecyclerView
         recyclerViewApplicants = findViewById(R.id.recyclerWorkerViewApplicants);
@@ -103,7 +104,7 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
 
         // Initialize adapter
-        workerAdapter = new WorkerAdapter(workerList,jobId,jobName,startDate,clientId);
+        workerAdapter = new WorkerAdapter(workerList,jobId,jobName,startDate,clientId,documentId);
 
         // Set adapter to RecyclerView
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -299,14 +300,16 @@ public class ViewApplicants extends AppCompatActivity {
         private String jobName;// Add jobName field
         private String startDate;
         private String clientId;
+        private String documentId;
 
-
-        public WorkerAdapter(List<Worker> workerList,String jobId,String jobName,String startDate,String clientId) {
+        public WorkerAdapter(List<Worker> workerList,String jobId,String jobName,String startDate,
+                             String clientId,String documentId) {
             this.workerList = workerList;
             this.jobId = jobId;
             this.jobName = jobName; // Assign the jobName
             this.startDate = startDate;
             this.clientId = clientId;
+            this.documentId = documentId;
         }
 
         @Override
@@ -343,8 +346,10 @@ public class ViewApplicants extends AppCompatActivity {
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                     Map<String, Object> assignedJob = new HashMap<>();
                     assignedJob.put("workerId", worker.getWorkerId());
+                    assignedJob .put("workerName", worker.getName());
                     assignedJob.put("clientId", clientId);
                     assignedJob.put("jobId", jobId);
+                    assignedJob.put("documentId", documentId);
                     assignedJob.put("jobName", jobName);
                     assignedJob.put("jobStartDate", startDate);
 

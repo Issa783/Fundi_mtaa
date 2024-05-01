@@ -85,7 +85,11 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId, jobName, jobStartDate, minExperience, location, price, jobDescription,false);
+                            Job job = new Job(jobId, clientId,null,jobName, jobStartDate, minExperience, location, price, jobDescription,false);
+                            // Set the document ID to the Job object
+                            job.setDocumentId(document.getId());
+
+                            // Add the Job object to the list
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -144,7 +148,7 @@ public class ViewJobsActivity extends AppCompatActivity {
         public void onBindViewHolder(JobViewHolder holder, int position) {
             Job job = jobList.get(position);
             holder.textViewJobName.setText("Job Name: " + job.getJobName());
-            holder.textViewPublishedOn.setText("Posted on: " + job.getStartDate());
+            holder.textViewPublishedOn.setText("Job Start Date: " + job.getJobStartDate());
             holder.textViewLocation.setText("Location: " + job.getLocation());
 
             // Set OnClickListener for the Manage button
@@ -161,12 +165,14 @@ public class ViewJobsActivity extends AppCompatActivity {
 
                 // Retrieve the job ID for the selected job
                 String jobId = job.getJobId();
+                String documentId = job.getDocumentId();
 
                 // Start ViewWorkersActivity and pass the jobId to it
                 Intent intent = new Intent(ViewJobsActivity.this, ViewApplicants.class);
                 intent.putExtra("jobId", jobId);
+                intent.putExtra("documentId", documentId);
                 intent.putExtra("jobName", job.getJobName());
-                intent.putExtra("jobStartDate", job.getStartDate());
+                intent.putExtra("jobStartDate", job.getJobStartDate());
                 intent.putExtra("clientId",job.getClientId());
                 startActivity(intent);
             });
@@ -179,3 +185,4 @@ public class ViewJobsActivity extends AppCompatActivity {
         }
     }
 }
+

@@ -2,8 +2,9 @@ package com.example.fundimtaa;
 public class Job {
     private String jobId;
     private String clientId;
+    private String documentId;
     private String jobName;
-    private String startDate;
+    private String jobStartDate;
     private String minExperience;
     private  String location;
     private String price;
@@ -14,13 +15,14 @@ public class Job {
         // Default constructor is necessary for Firestore
     }
 
-    public Job(String jobId,String clientId, String jobName,
-               String startDate, String minExperience,
+    public Job(String jobId,String clientId,String documentId, String jobName,
+               String jobStartDate, String minExperience,
                String location, String price,String jobDescription,boolean isCompleted) {
         this.jobId = jobId;
         this.clientId = clientId;
+        this.documentId= documentId;
         this.jobName = jobName;
-        this.startDate = startDate;
+        this.jobStartDate = jobStartDate;
         this.minExperience = minExperience;
         this.location = location;
         this.price = price;
@@ -32,13 +34,20 @@ public class Job {
     public String getJobId() {
         return jobId;
     }
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
     public String getClientId(){return clientId;}
     public String getJobName() {
         return jobName;
     }
 
-    public String getStartDate() {
-        return startDate;
+    public String getJobStartDate() {
+        return jobStartDate;
     }
 
     public String getMinExperience() {

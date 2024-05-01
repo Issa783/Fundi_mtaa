@@ -1,4 +1,3 @@
-
 package com.example.fundimtaa;
 
 import android.os.Bundle;
@@ -46,9 +45,10 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
         pendingJobsList = new ArrayList<>();
         completedJobsList = new ArrayList<>();
 
-        // Initialize adapters
-        pendingJobAdapter = new JobAdapter(pendingJobsList);
-        completedJobAdapter = new JobAdapter(completedJobsList);
+        // Initialize adapters with the appropriate isPending parameter
+        pendingJobAdapter = new JobAdapter(pendingJobsList, true); // For pending jobs
+        completedJobAdapter = new JobAdapter(completedJobsList, false); // For completed jobs
+
 
         // Set adapters to RecyclerViews
         recyclerViewPendingJobs.setAdapter(pendingJobAdapter);
@@ -59,9 +59,9 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
     }
 
     // Add a method to update the job status in Firestore
-    private void updateJobStatus(Job job) {
+    private void updateJobStatus(Job job, String documentId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs").document(job.getJobId())
+        db.collection("AssignedJobs").document(documentId)
                 .update("completed", true)
                 .addOnSuccessListener(aVoid -> {
                     // Job status updated successfully
@@ -81,6 +81,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
     }
 
 
+
     private void retrieveAssignedJobs() {
         // Get the current user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -98,6 +99,8 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                             completedJobsList.clear();
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Job job = document.toObject(Job.class);
+                                // Set the documentId for the job
+                                job.setDocumentId(document.getId());
                                 // Differentiate between pending and completed jobs based on their status
                                 if (job.isCompleted()) {
                                     completedJobsList.add(job);
@@ -124,21 +127,23 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
     private class JobAdapter extends RecyclerView.Adapter<JobViewHolder> {
 
         private List<Job> jobList;
+        private boolean isPending; // Flag to differentiate between pending and completed jobs
 
-        public JobAdapter(List<Job> jobList) {
+        public JobAdapter(List<Job> jobList, boolean isPending) {
             this.jobList = jobList;
+            this.isPending = isPending;
         }
 
         @Override
         public JobViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_worker_application_history, parent, false);
-            return new JobViewHolder(view,jobList);
+            return new JobViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(JobViewHolder holder, int position) {
             Job job = jobList.get(position);
-            holder.bind(job);
+            holder.bind(job, isPending);
         }
 
         @Override
@@ -152,35 +157,51 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
 
         private TextView textViewJobName;
         private TextView textViewJobStartDate;
-
-        private  Button buttonViewJobDetails;
+        private Button buttonViewJobDetails;
         private Button buttonMarkAsDone;
-        private List<Job> jobList;
 
-        public JobViewHolder(View itemView, List<Job> jobList) {
+        public JobViewHolder(View itemView) {
             super(itemView);
-            this.jobList = jobList;
             textViewJobName = itemView.findViewById(R.id.textViewJobName);
             textViewJobStartDate = itemView.findViewById(R.id.textViewJobDate);
-            buttonViewJobDetails =  itemView.findViewById(R.id.buttonViewJobDetails);
+            buttonViewJobDetails = itemView.findViewById(R.id.buttonViewJobDetails);
             buttonMarkAsDone = itemView.findViewById(R.id.buttonMarkAsDone);
-
-            // Set OnClickListener for the "Mark as Done" button
-            buttonMarkAsDone.setOnClickListener(v -> {
-                int position = getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION) {
-                    // Get the job at the clicked position
-                    Job job = this.jobList.get(position);
-
-                    // Update job status in Firestore
-                    updateJobStatus(job);
-                }
-            });
         }
 
-        public void bind(Job job) {
-            textViewJobName.setText("Name: " + job.getJobName());
-            textViewJobStartDate.setText("Job start date: " + job.getStartDate());
+        public void bind(Job job, boolean isPending) {
+            textViewJobName.setText("Job Name: " + job.getJobName());
+            textViewJobStartDate.setText("Job Start Date: " + job.getJobStartDate());
+
+            if (isPending) {
+                // If the job is pending, show both buttons
+                buttonMarkAsDone.setVisibility(View.VISIBLE);
+                buttonViewJobDetails.setVisibility(View.VISIBLE);
+
+                // Set OnClickListener for "Mark as Done" button
+                buttonMarkAsDone.setOnClickListener(v -> {
+                    String documentId = job.getDocumentId();
+                    updateJobStatus(job, documentId);
+                });
+
+                // Set OnClickListener for "View Job Details" button
+                buttonViewJobDetails.setOnClickListener(v -> {
+                    // Handle "View Job Details" button click
+                    // You can implement the logic to view job details here
+                    Toast.makeText(itemView.getContext(), "View Job Details for " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                });
+            } else {
+                // If the job is completed, hide "Mark as Done" button and only show "View Job Details" button
+                buttonMarkAsDone.setVisibility(View.GONE);
+                buttonViewJobDetails.setVisibility(View.VISIBLE);
+
+                // Set OnClickListener for "View Job Details" button
+                buttonViewJobDetails.setOnClickListener(v -> {
+                    // Handle "View Job Details" button click
+                    // You can implement the logic to view job details here
+                    Toast.makeText(itemView.getContext(), "View Job Details for " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                });
+            }
         }
     }
+
 }
