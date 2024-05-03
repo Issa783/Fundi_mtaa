@@ -352,11 +352,17 @@ public class ViewApplicants extends AppCompatActivity {
                     assignedJob.put("documentId", documentId);
                     assignedJob.put("jobName", jobName);
                     assignedJob.put("jobStartDate", startDate);
+                    assignedJob.put("rating", 0); // Initialize the rating with a default value, e.g., 0
+                    assignedJob.put("review", ""); // Initialize the review with an empty string
 
                     assignedJob.put("assignedDate", new Date()); // You can use the current date/time as the assigned date
                     db.collection("AssignedJobs")
                             .add(assignedJob)
                             .addOnSuccessListener(documentReference -> {
+                                String jobId = documentReference.getId(); // Retrieve the generated document ID
+
+                                // Update the job document with the jobId
+                                documentReference.update("jobId", jobId);
                                 // Job assigned successfully, you can display a message or perform any other action if needed
                                 Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                             })

@@ -92,12 +92,12 @@ public class WorkerViewJobs extends AppCompatActivity {
                             String jobId = document.getId();
                             String clientId = document.getString("clientId");
                             String jobName = document.getString("jobName");
-                            String jobStartDate = document.getString("jobStartDate");
+;                            String jobStartDate = document.getString("jobStartDate");
                             String minExperience = document.getString("minExperience");
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId, null,jobName, jobStartDate,
+                            Job job = new Job(jobId, clientId, null,jobName,jobStartDate,
                                     minExperience, location, price, jobDescription,false);
                             jobList.add(job);
                         }

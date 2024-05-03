@@ -53,6 +53,7 @@
       </LinearLayout>
     </androidx.cardview.widget.CardView>
     <androidx.cardview.widget.CardView
+        android:id="@+id/client_job_history"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:cardCornerRadius="15dp"

@@ -19,6 +19,7 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
 
         // Find views
         CardView postJobCard = findViewById(R.id.card_post_job);
+        CardView clientJobHistory = findViewById(R.id.client_job_history);
 
 
         // Set OnClickListener for the post job card
@@ -27,6 +28,13 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Navigate to the job posting interface
                 startActivity(new Intent(ClientHomeDashboardActivity.this, PostingActivity.class));
+            }
+        });
+        clientJobHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to the job posting interface
+                startActivity(new Intent(ClientHomeDashboardActivity.this, ClientJobHistoryActivity.class));
             }
         });
 

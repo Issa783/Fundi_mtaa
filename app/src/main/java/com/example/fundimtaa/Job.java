@@ -5,6 +5,7 @@ public class Job {
     private String documentId;
     private String jobName;
     private String jobStartDate;
+
     private String minExperience;
     private  String location;
     private String price;
@@ -15,7 +16,7 @@ public class Job {
         // Default constructor is necessary for Firestore
     }
 
-    public Job(String jobId,String clientId,String documentId, String jobName,
+    public Job(String jobId,String clientId,String documentId,String jobName,
                String jobStartDate, String minExperience,
                String location, String price,String jobDescription,boolean isCompleted) {
         this.jobId = jobId;
@@ -41,6 +42,7 @@ public class Job {
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
     }
+
     public String getClientId(){return clientId;}
     public String getJobName() {
         return jobName;

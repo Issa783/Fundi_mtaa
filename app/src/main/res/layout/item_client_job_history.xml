@@ -22,13 +22,7 @@
             android:textStyle="bold" />
 
         <!-- Start Date -->
-        <TextView
-            android:id="@+id/textViewWorkerName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp" />
 
-        <!-- Price -->
         <TextView
             android:id="@+id/textViewJobStartDate"
             android:layout_width="match_parent"
