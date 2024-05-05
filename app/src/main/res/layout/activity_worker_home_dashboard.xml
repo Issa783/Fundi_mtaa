@@ -116,6 +116,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
+            android:id="@+id/card_profile"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:cardCornerRadius="15dp"

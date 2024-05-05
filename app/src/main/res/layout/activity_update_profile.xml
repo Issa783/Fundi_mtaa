@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardViewProfileUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:elevation="4dp"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:padding="16dp">
+
+        <!-- Name -->
+        <EditText
+            android:id="@+id/editTextName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            android:inputType="textPersonName" />
+
+        <!-- Email -->
+        <EditText
+            android:id="@+id/editTextEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:inputType="textEmailAddress" />
+
+        <!-- Phone Number -->
+        <EditText
+            android:id="@+id/editTextPhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Phone Number"
+            android:inputType="phone" />
+
+        <!-- Location -->
+        <EditText
+            android:id="@+id/editTextLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Location" />
+
+        <!-- Fieldset: Experience and Specialization -->
+        <TextView
+            android:id="@+id/textViewExperienceSpecialization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Experience and Specialization"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_below="@id/editTextLocation"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Experience -->
+        <EditText
+            android:id="@+id/editTextExperience"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Experience" />
+
+        <!-- Specialization -->
+        <EditText
+            android:id="@+id/editTextSpecialization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Specialization" />
+
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Button: Save Profile -->
+    <Button
+        android:id="@+id/btnSaveProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Profile"
+        android:layout_below="@id/cardViewProfileUpdate"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"/>
+
+</RelativeLayout>

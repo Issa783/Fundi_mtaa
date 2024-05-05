@@ -18,6 +18,8 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
         // Get reference to the search jobs card
         CardView searchJobsCard = findViewById(R.id.search_Jobs_Card);
         CardView workerhistory = findViewById(R.id.worker_history);
+        CardView profileCard = findViewById(R.id.card_profile);
+
 
         // Set OnClickListener for the search jobs card
         searchJobsCard.setOnClickListener(new View.OnClickListener() {
@@ -32,6 +34,13 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(WorkerHomeDashboardActivity.this, WorkerApplicationJobHistory.class);
+                startActivity(intent);
+            }
+        });
+        profileCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(WorkerHomeDashboardActivity.this, WorkerProfileActivity.class);
                 startActivity(intent);
             }
         });
