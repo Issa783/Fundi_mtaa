@@ -71,7 +71,7 @@ public class WorkerActivity extends AppCompatActivity {
                 String cvName = editTextCVName.getText().toString().trim();
 
                 // Check if all fields are filled
-                if (about.isEmpty() || experience.isEmpty() || location.isEmpty() || specialization.isEmpty() || cvName.isEmpty()) {
+                if (about.isEmpty() || experience.isEmpty() || location.isEmpty() || specialization.isEmpty()) {
                     Toast.makeText(WorkerActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }

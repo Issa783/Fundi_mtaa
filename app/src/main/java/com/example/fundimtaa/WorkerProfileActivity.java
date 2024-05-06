@@ -67,11 +67,12 @@ public class WorkerProfileActivity extends AppCompatActivity {
                             String jobId = document.getId();
                             String jobName = document.getString("jobName");
                             float rating = document.getDouble("rating").floatValue();
+                            Log.d(TAG, "Retrieved rating from Firestore: " + rating); // Logging statement
                             String review = document.getString("review");
 
                             // Create TextViews to display job name and review
                             TextView textViewJobName = new TextView(WorkerProfileActivity.this);
-                            textViewJobName.setText("Job: " + jobName);
+                            textViewJobName.setText("Job Name: " + jobName);
 
                             TextView textViewReview = new TextView(WorkerProfileActivity.this);
                             textViewReview.setText("Review: " + review);
@@ -79,6 +80,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
                             // Create RatingBar to display rating
                             RatingBar ratingBar = new RatingBar(WorkerProfileActivity.this, null, android.R.attr.ratingBarStyleSmall);
                             ratingBar.setRating(rating);
+                            ratingBar.setNumStars(5); // Set the number of stars
                             ratingBar.setIsIndicator(true);
 
                             // Add views to layoutRatingsReviews LinearLayout
@@ -95,7 +97,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
 
         // Retrieve and display worker's details from the Firestore "Workers" collection
         if (workerId != null) {
-            db.collection("Workers")
+            db.collection("workers")
                     .document(workerId)
                     .get()
                     .addOnCompleteListener(task -> {
@@ -124,7 +126,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
                                 textViewLocation.setText("Location: " + location);
 
                                 TextView textViewExperience = findViewById(R.id.textViewExperience);
-                                textViewExperience.setText("Experience: " + experience);
+                                textViewExperience.setText("Work Experience: " + experience);
 
                                 TextView textViewSpecialization = findViewById(R.id.textViewSpecialization);
                                 textViewSpecialization.setText("Specialization: " + specialization);
@@ -138,125 +140,4 @@ public class WorkerProfileActivity extends AppCompatActivity {
         }
     }
 }
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-
-
-
-<!-- Worker's Profile Information -->
-<androidx.cardview.widget.CardView android:id="@+id/cardViewProfileInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:elevation="4dp"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:padding="16dp"
-        xmlns:android="http://schemas.android.com/apk/res/android">
-
-<LinearLayout
-        android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-<!-- Fieldset: Personal Information -->
-<TextView
-            android:id="@+id/textViewPersonalInfo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Personal Information"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginBottom="8dp"/>
-
-<!-- Name -->
-<TextView
-            android:id="@+id/textViewName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Name: "/>
-
-<!-- Email -->
-<TextView
-            android:id="@+id/textViewEmail"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Email: "/>
-
-<!-- Phone Number -->
-<TextView
-            android:id="@+id/textViewPhoneNumber"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Phone Number: "/>
-
-<!-- Location -->
-<TextView
-            android:id="@+id/textViewLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Location: "/>
-
-<!-- Fieldset: Experience and Specialization -->
-<TextView
-            android:id="@+id/textViewExperienceSpecialization"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Experience and Specialization"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
-
-<!-- Experience -->
-<TextView
-            android:id="@+id/textViewExperience"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Experience: "/>
-
-<!-- Specialization -->
-<TextView
-            android:id="@+id/textViewSpecialization"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Specialization: "/>
-
-<!-- Fieldset: Ratings and Reviews -->
-<TextView
-            android:id="@+id/textViewRatingsReviews"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Ratings and Reviews"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
-
-<!-- Dynamic layout to display ratings and reviews -->
-<LinearLayout
-            android:id="@+id/layoutRatingsReviews"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"/>
-
-</LinearLayout>
-</androidx.cardview.widget.CardView>
-
-<!-- Button: Update Profile -->
-<Button
-    android:id="@+id/btnUpdateProfile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Update Profile"
-            android:layout_below="@id/cardViewProfileInfo"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="16dp"/>
-</LinearLayout>
 

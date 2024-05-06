@@ -34,7 +34,7 @@ public class RegistrationActivity extends AppCompatActivity {
         EditText editTextEmail = findViewById(R.id.editTextEmail);
         EditText editTextPassword = findViewById(R.id.editTextPassword);
         EditText editTextConfirmPassword = findViewById(R.id.editTextConfirmPassword);
-        EditText editTextMobile = findViewById(R.id.editTextMobile);
+        EditText editTextPhoneNumber = findViewById(R.id.editTextPhoneNumber);
 
         RadioGroup radioGroupRole = findViewById(R.id.radioGroupUserType);
 
@@ -46,9 +46,9 @@ public class RegistrationActivity extends AppCompatActivity {
                 String email = editTextEmail.getText().toString().trim();
                 String password = editTextPassword.getText().toString().trim();
                 String confirmPassword = editTextConfirmPassword.getText().toString().trim();
-                String mobile = editTextMobile.getText().toString().trim();
+                String phoneNumber = editTextPhoneNumber.getText().toString().trim();
 
-                if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || mobile.isEmpty()) {
+                if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || phoneNumber.isEmpty()) {
                     Toast.makeText(RegistrationActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -79,7 +79,7 @@ public class RegistrationActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     // Registration successful
                                     String userId = mAuth.getCurrentUser().getUid();
-                                    User user = new User(userId, name, email, mobile);
+                                    User user = new User(userId, name, email,phoneNumber);
 
                                     // Store user data in the appropriate collection based on role
                                     db.collection(role + "s").document(userId)

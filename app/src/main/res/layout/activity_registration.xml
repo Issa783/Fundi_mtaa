@@ -90,10 +90,10 @@
                 android:layout_marginTop="8dp" />
 
             <EditText
-                android:id="@+id/editTextMobile"
+                android:id="@+id/editTextPhoneNumber"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Mobile Number"
+                android:hint="Phone Number"
                 android:inputType="phone"
                 android:layout_below="@id/editTextConfirmPassword"
                 android:layout_marginTop="8dp" />
@@ -104,7 +104,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Register"
-                android:layout_below="@id/editTextMobile"
+                android:layout_below="@id/editTextPhoneNumber"
                 android:layout_marginTop="16dp" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

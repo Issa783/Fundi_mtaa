@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class UpdateProfileActivity extends AppCompatActivity {
@@ -23,16 +24,25 @@ public class UpdateProfileActivity extends AppCompatActivity {
     private EditText editTextSpecialization;
     private FirebaseFirestore db;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_profile);
 
-        // Find the "Save Profile" button
-        btnSaveProfile = findViewById(R.id.btnSaveProfile);
+        // Initialize Firebase components
+        mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Find EditText views by their IDs
+        editTextName = findViewById(R.id.editTextName);
+        editTextEmail = findViewById(R.id.editTextEmail);
+        editTextPhoneNumber = findViewById(R.id.editTextPhoneNumber);
+        editTextLocation = findViewById(R.id.editTextLocation);
+        editTextExperience = findViewById(R.id.editTextExperience);
+        editTextSpecialization = findViewById(R.id.editTextSpecialization);
+
+        // Find the "Save Profile" button
+        btnSaveProfile = findViewById(R.id.btnSaveProfile);
 
         // Set click listener on the button
         btnSaveProfile.setOnClickListener(new View.OnClickListener() {
@@ -42,6 +52,32 @@ public class UpdateProfileActivity extends AppCompatActivity {
                 saveProfile();
             }
         });
+
+        // Pre-populate EditText fields with user details
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String workerId = currentUser.getUid();
+            db.collection("workers").document(workerId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            // Populate EditText fields with user details
+                            editTextName.setText(documentSnapshot.getString("name"));
+                            editTextEmail.setText(documentSnapshot.getString("email"));
+                            editTextPhoneNumber.setText(documentSnapshot.getString("phoneNumber"));
+                            editTextLocation.setText(documentSnapshot.getString("location"));
+                            editTextExperience.setText(documentSnapshot.getString("experience"));
+                            editTextSpecialization.setText(documentSnapshot.getString("specialization"));
+                        } else {
+                            Toast.makeText(UpdateProfileActivity.this, "User details not found", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(UpdateProfileActivity.this, "Failed to fetch user details", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Toast.makeText(UpdateProfileActivity.this, "User not logged in", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveProfile() {
@@ -53,11 +89,13 @@ public class UpdateProfileActivity extends AppCompatActivity {
         String experience = editTextExperience.getText().toString().trim();
         String specialization = editTextSpecialization.getText().toString().trim();
 
+        // Get the current user's ID
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        String workerId = currentUser != null ? currentUser.getUid() : null;
-        if (!workerId.isEmpty()) {
-            db.collection("Workers").document(workerId)
-                    .set(new profileWorker(name, email, phoneNumber, location,experience,specialization))
+        if (currentUser != null) {
+            String workerId = currentUser.getUid();
+            // Update user profile in Firestore
+            db.collection("workers").document(workerId)
+                    .set(new profileWorker(name, email, phoneNumber, location, experience, specialization))
                     .addOnSuccessListener(aVoid -> {
                         // Profile saved successfully
                         Toast.makeText(UpdateProfileActivity.this, "Profile saved successfully", Toast.LENGTH_SHORT).show();
@@ -68,9 +106,7 @@ public class UpdateProfileActivity extends AppCompatActivity {
                         Toast.makeText(UpdateProfileActivity.this, "Failed to save profile. Please try again.", Toast.LENGTH_SHORT).show();
                     });
         } else {
-            // Handle error if workerId is empty
-            Toast.makeText(UpdateProfileActivity.this, "Worker ID not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(UpdateProfileActivity.this, "User not logged in", Toast.LENGTH_SHORT).show();
         }
     }
-    }
-
+}

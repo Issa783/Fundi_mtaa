@@ -3,17 +3,18 @@ public class User {
     private String userId;
     private String name;
     private String email;
-    private String mobile;
+    private String phoneNumber;
 
     public User() {
         // Default constructor required for Firestore
     }
 
-    public User(String userId, String name, String email, String mobile) {
+
+    public User(String userId, String name, String email, String phoneNumber) {
         this.userId = userId;
         this.name = name;
         this.email = email;
-        this.mobile = mobile;
+        this.phoneNumber = phoneNumber;
     }
 
     public String getUserId() {
@@ -40,12 +41,12 @@ public class User {
         this.email = email;
     }
 
-    public String getMobile() {
-        return mobile;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
-// Getters and setters for your fields
+
 }
