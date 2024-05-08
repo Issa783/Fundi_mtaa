@@ -21,6 +21,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Name" />
+        <EditText
+            android:id="@+id/editTextPhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Phone Number"
+            android:inputType="number"/>
 
         <!-- Date of Application Input Field -->
         <EditText
@@ -29,6 +35,12 @@
             android:layout_height="wrap_content"
             android:hint="Date of Application"
             android:inputType="date" />
+        <EditText
+            android:id="@+id/editTextLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="location"
+             />
         <EditText
             android:id="@+id/editTextExperience"
             android:layout_width="match_parent"

@@ -77,9 +77,10 @@ public class RegistrationActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
-                                    // Registration successful
                                     String userId = mAuth.getCurrentUser().getUid();
-                                    User user = new User(userId, name, email,phoneNumber);
+                                    User user = new User(userId, name, email, phoneNumber,userId);
+
+                                    String idFieldName = role.equals("client") ? "clientID" : "workerID";
 
                                     // Store user data in the appropriate collection based on role
                                     db.collection(role + "s").document(userId)
@@ -88,10 +89,10 @@ public class RegistrationActivity extends AppCompatActivity {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
-                                                        Toast.makeText(RegistrationActivity.this, " data stored successfully", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(RegistrationActivity.this, "Data stored successfully", Toast.LENGTH_SHORT).show();
                                                         // User data stored successfully
                                                         Intent intent = new Intent(RegistrationActivity.this, nextActivity);
-                                                        intent.putExtra("userId", userId);
+                                                        intent.putExtra("userId", userId); // Pass userId or the appropriate ID
                                                         startActivity(intent);
                                                         finish();
                                                     } else {
@@ -106,6 +107,7 @@ public class RegistrationActivity extends AppCompatActivity {
                                 }
                             }
                         });
+
             }
         });
     }

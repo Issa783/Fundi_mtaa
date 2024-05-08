@@ -216,9 +216,11 @@ public class ViewApplicants extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String workerId = document.getString("workerId");
                                 String name = document.getString("name");
+                                String phoneNumber = document.getString("phoneNumber");
+                                String location = document.getString("location");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name, dateOfApplication, experience);
+                                Worker worker = new Worker(workerId, name,phoneNumber,location, dateOfApplication, experience);
                                 workerList.add(worker);
                             }
                             workerAdapter.notifyDataSetChanged();
@@ -329,15 +331,14 @@ public class ViewApplicants extends AppCompatActivity {
             holder.buttonViewProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // Handle view profile button click
-                    // Implement the logic to view worker's profile
-                    Toast.makeText(ViewApplicants.this, "View profile clicked for worker: " + worker.getName(), Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ViewApplicants.this, ViewProfileWor.class);
+                    intent.putExtra("workerId", worker.getWorkerId());
+                    startActivity(intent);
                 }
             });
 
             // Set OnClickListener for the "Assign Job" button
-            // Set OnClickListener for the "Assign Job" button
-            holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
+                   holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     // Retrieve the worker associated with this item
@@ -347,6 +348,9 @@ public class ViewApplicants extends AppCompatActivity {
                     Map<String, Object> assignedJob = new HashMap<>();
                     assignedJob.put("workerId", worker.getWorkerId());
                     assignedJob .put("workerName", worker.getName());
+                    assignedJob.put("phoneNumber", worker.getPhoneNumber());
+                    assignedJob .put("location", worker.getLocation());
+                    assignedJob.put("experience", worker.getExperience());
                     assignedJob.put("clientId", clientId);
                     assignedJob.put("jobId", jobId);
                     assignedJob.put("documentId", documentId);

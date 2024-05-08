@@ -25,6 +25,8 @@ import java.util.Map;
 public class ApplyJobActivity extends AppCompatActivity {
 
     private EditText editTextName;
+    private EditText editTextPhoneNumber;
+    private EditText editTextLocation;
     private EditText editTextDate;
     private EditText editTextExperience;
     private Button buttonApplyJob;
@@ -42,6 +44,8 @@ public class ApplyJobActivity extends AppCompatActivity {
         mFirestore = FirebaseFirestore.getInstance();
 
         editTextName = findViewById(R.id.editTextName);
+        editTextPhoneNumber = findViewById(R.id.editTextPhoneNumber);
+        editTextLocation = findViewById(R.id.editTextLocation);
         editTextDate = findViewById(R.id.editTextDate);
         editTextExperience = findViewById(R.id.editTextExperience);
         buttonApplyJob = findViewById(R.id.buttonApplyJob);
@@ -58,13 +62,15 @@ public class ApplyJobActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String name = editTextName.getText().toString().trim();
                 String date = editTextDate.getText().toString().trim();
+                String phoneNumber = editTextPhoneNumber.getText().toString().trim();
+                String location = editTextLocation.getText().toString().trim();
                 String experience = editTextExperience.getText().toString().trim();
 
-                if (name.isEmpty() || date.isEmpty() || experience.isEmpty()) {
+                if (name.isEmpty() || date.isEmpty() || experience.isEmpty() || phoneNumber.isEmpty() || location.isEmpty()) {
                     Toast.makeText(ApplyJobActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 } else {
                     // Save details to the database and send notification
-                    saveJobApplication(name, date, experience);
+                    saveJobApplication(name, date, phoneNumber,location,experience);
                 }
             }
         });
@@ -106,6 +112,8 @@ public class ApplyJobActivity extends AppCompatActivity {
         Map<String, Object> application = new HashMap<>();
         application.put("name", name);
         application.put("dateOfApplication", date);
+        application.put("phoneNumber", PhoneNumber);
+        application.put("location", location);
         application.put("experience", experience);
         application.put("workerId", workerId);
         application.put("jobId",jobId);
@@ -116,6 +124,8 @@ public class ApplyJobActivity extends AppCompatActivity {
                     Toast.makeText(ApplyJobActivity.this, "Application submitted successfully", Toast.LENGTH_SHORT).show();
                     editTextName.setText("");
                     editTextDate.setText("");
+                    editTextPhoneNumber.setText("");
+                    editTextLocation.setText("");
                     editTextExperience.setText("");
 
                     // Retrieve jobId from the newly added document

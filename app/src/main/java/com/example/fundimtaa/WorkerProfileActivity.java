@@ -35,6 +35,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_worker_profile);
 
         mAuth = FirebaseAuth.getInstance();
+        String workerId = getIntent().getStringExtra("workerId");
 
         // Initialize layoutRatingsReviews LinearLayout
         layoutRatingsReviews = findViewById(R.id.layoutRatingsReviews);
@@ -52,8 +53,8 @@ public class WorkerProfileActivity extends AppCompatActivity {
         });
 
         // Retrieve worker's ID
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        String workerId = currentUser != null ? currentUser.getUid() : null;
+       /* FirebaseUser currentUser = mAuth.getCurrentUser();
+        String workerId = currentUser != null ? currentUser.getUid() : null;*/
 
         // Query Firestore to fetch ratings and reviews for jobs assigned to this worker
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -79,8 +80,11 @@ public class WorkerProfileActivity extends AppCompatActivity {
 
                             // Create RatingBar to display rating
                             RatingBar ratingBar = new RatingBar(WorkerProfileActivity.this, null, android.R.attr.ratingBarStyleSmall);
+                            ratingBar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)); // Set layout parameters
                             ratingBar.setRating(rating);
-                            ratingBar.setNumStars(5); // Set the number of stars
+                            ratingBar.setNumStars(5); // Set the number of
+                            // Set the step size for the RatingBar
+                            ratingBar.setStepSize(1.0f); // 1.0f for whole number ratings, adjust as needed
                             ratingBar.setIsIndicator(true);
 
                             // Add views to layoutRatingsReviews LinearLayout
