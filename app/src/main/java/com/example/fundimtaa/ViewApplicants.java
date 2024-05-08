@@ -331,7 +331,9 @@ public class ViewApplicants extends AppCompatActivity {
                 public void onClick(View v) {
                     // Handle view profile button click
                     // Implement the logic to view worker's profile
-                    Toast.makeText(ViewApplicants.this, "View profile clicked for worker: " + worker.getName(), Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ViewApplicants.this, WorkerProfileActivity.class);
+                    intent.putExtra("workerId", worker.getWorkerId());
+                    startActivity(intent);
                 }
             });
 

@@ -79,16 +79,22 @@ public class RegistrationActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     // Registration successful
                                     String userId = mAuth.getCurrentUser().getUid();
-                                    User user = new User(userId, name, email,phoneNumber);
+                                    String idFieldName = role.equals("client") ? "clientId" : "workerId";
 
-                                    // Store user data in the appropriate collection based on role
+                                    User user;
+                                    if (role.equals("worker")) {
+                                        user = new User(userId, name, email, phoneNumber, userId); // Assign userId as clientId
+                                    } else {
+                                        user = new User(userId, name, email, phoneNumber); // Assign null for workerId
+                                    }
+
                                     db.collection(role + "s").document(userId)
                                             .set(user)
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
-                                                        Toast.makeText(RegistrationActivity.this, " data stored successfully", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(RegistrationActivity.this, "Data stored successfully", Toast.LENGTH_SHORT).show();
                                                         // User data stored successfully
                                                         Intent intent = new Intent(RegistrationActivity.this, nextActivity);
                                                         intent.putExtra("userId", userId);
@@ -100,6 +106,9 @@ public class RegistrationActivity extends AppCompatActivity {
                                                     }
                                                 }
                                             });
+
+
+
                                 } else {
                                     // Registration failed
                                     Toast.makeText(RegistrationActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

@@ -4,12 +4,21 @@ public class User {
     private String name;
     private String email;
     private String phoneNumber;
+    private String clientId; // Add clientId field
+     private String workerId; // Add workerId field
 
     public User() {
         // Default constructor required for Firestore
     }
 
 
+    public User(String userId, String name, String email, String phoneNumber,String workerId) {
+        this.userId = userId;
+        this.name = name;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.workerId = workerId;
+    }
     public User(String userId, String name, String email, String phoneNumber) {
         this.userId = userId;
         this.name = name;
@@ -49,4 +58,19 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
 
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getWorkerId() {
+        return workerId;
+    }
+
+    public void setWorkerId(String workerId) {
+        this.workerId = workerId;
+    }
 }
