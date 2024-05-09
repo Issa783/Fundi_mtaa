@@ -1,5 +1,6 @@
 package com.example.fundimtaa;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -79,8 +80,39 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                     Toast.makeText(WorkerApplicationJobHistory.this, "Failed to mark job as done: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
-
+    // Method to retrieve additional job details from Firestore
+    private void retrieveJobDetails(String jobId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("Jobs").document(jobId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Job document exists, retrieve additional details
+                        Job job = documentSnapshot.toObject(Job.class);
+                        if (job != null) {
+                            // Pass job details to the JobDetailsActivity
+                            Intent intent = new Intent(WorkerApplicationJobHistory.this, JobDetailsActivity.class);
+                            intent.putExtra("jobName", job.getJobName());
+                            intent.putExtra("jobStartDate", job.getJobStartDate());
+                            intent.putExtra("minExperience", job.getMinExperience());
+                            intent.putExtra("location", job.getLocation());
+                            intent.putExtra("price", job.getPrice());
+                            intent.putExtra("jobDescription", job.getJobDescription());
+                            startActivity(intent);
+                        } else {
+                            // Handle case where job object is null
+                            Toast.makeText(WorkerApplicationJobHistory.this, "Failed to retrieve job details", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // Job document does not exist
+                        Toast.makeText(WorkerApplicationJobHistory.this, "Job details not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle Firestore query failure
+                    Toast.makeText(WorkerApplicationJobHistory.this, "Failed to retrieve job details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
     private void retrieveAssignedJobs() {
         // Get the current user
@@ -185,9 +217,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
 
                 // Set OnClickListener for "View Job Details" button
                 buttonViewJobDetails.setOnClickListener(v -> {
-                    // Handle "View Job Details" button click
-                    // You can implement the logic to view job details here
-                    Toast.makeText(itemView.getContext(), "View Job Details for " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                    retrieveJobDetails(job.getJobId());
                 });
             } else {
                 // If the job is completed, hide "Mark as Done" button and only show "View Job Details" button
@@ -196,12 +226,15 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
 
                 // Set OnClickListener for "View Job Details" button
                 buttonViewJobDetails.setOnClickListener(v -> {
-                    // Handle "View Job Details" button click
-                    // You can implement the logic to view job details here
-                    Toast.makeText(itemView.getContext(), "View Job Details for " + job.getJobName(), Toast.LENGTH_SHORT).show();
+                    retrieveJobDetails(job.getJobId());
                 });
             }
         }
     }
-
 }
+
+
+
+
+
+

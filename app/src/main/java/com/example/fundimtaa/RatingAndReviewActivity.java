@@ -56,6 +56,9 @@ public class RatingAndReviewActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     // Rating and review updated successfully
                     Toast.makeText(RatingAndReviewActivity.this, "Rating and review submitted for " + jobName, Toast.LENGTH_SHORT).show();
+                    // Clear the fields after submission
+                    ratingBar.setRating(0); // Set rating to default value
+                    editTextReview.setText(""); // Clear the review EditText
                 })
                 .addOnFailureListener(e -> {
                     // Handle errors

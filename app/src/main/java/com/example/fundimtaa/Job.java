@@ -55,6 +55,11 @@ public class Job {
     public String getMinExperience() {
         return minExperience;
     }
+
+    public void setMinExperience(String minExperience) {
+        this.minExperience = minExperience;
+    }
+
     public String getLocation() {
         return location;
     }

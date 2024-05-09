@@ -99,7 +99,7 @@ public class ApplyJobActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private void saveJobApplication(String name, String date, String experience) {
+    private void saveJobApplication(String name, String date, String phoneNumber,String location,String experience) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String workerId = currentUser != null ? currentUser.getUid() : null;
         jobId = getIntent().getStringExtra("jobId");
@@ -112,7 +112,7 @@ public class ApplyJobActivity extends AppCompatActivity {
         Map<String, Object> application = new HashMap<>();
         application.put("name", name);
         application.put("dateOfApplication", date);
-        application.put("phoneNumber", PhoneNumber);
+        application.put("phoneNumber", phoneNumber);
         application.put("location", location);
         application.put("experience", experience);
         application.put("workerId", workerId);

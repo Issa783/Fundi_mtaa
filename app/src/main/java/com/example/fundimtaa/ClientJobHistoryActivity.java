@@ -1,17 +1,12 @@
 package com.example.fundimtaa;
 
-
-
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,17 +19,15 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ClientJobHistoryActivity extends AppCompatActivity {
     private static final String TAG = ClientJobHistoryActivity.class.getSimpleName();
-    private Snackbar snackbar;
+
     private RecyclerView recyclerViewClientJobHistory;
     private JobAdapter jobAdapter;
     private List<Job> jobList;
@@ -56,6 +49,37 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
         // Load assigned jobs for the current client
         loadAssignedJobsForClient();
     }
+    private void fetchJobDetails(String jobId) {
+        // Initialize Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Query Firestore to fetch details of the specified job
+        db.collection("jobs").document(jobId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Job job = documentSnapshot.toObject(Job.class);
+                        if (job != null) {
+                            // Display job details or pass them to the JobDetailsActivity
+                            Intent intent = new Intent(ClientJobHistoryActivity.this, JobDetailsActivity.class);
+                            intent.putExtra("jobName", job.getJobName());
+                            intent.putExtra("jobStartDate", job.getJobStartDate());
+                            intent.putExtra("minExperience", job.getMinExperience());
+                            intent.putExtra("location", job.getLocation());
+                            intent.putExtra("price", job.getPrice());
+                            intent.putExtra("jobDescription", job.getJobDescription());
+                            startActivity(intent);
+                        }
+                    } else {
+                        Toast.makeText(ClientJobHistoryActivity.this, "Job details not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(ClientJobHistoryActivity.this, "Failed to fetch job details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
 
     private void loadAssignedJobsForClient() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -85,33 +109,7 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
             Toast.makeText(ClientJobHistoryActivity.this, "No user signed in", Toast.LENGTH_SHORT).show();
         }
     }
-    private void updateRatingAndReviewForJob(Job job, float rating, String review) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Assuming "AssignedJobs" collection has a field for ratings and reviews
-        db.collection("AssignedJobs")
-                .document(job.getJobId()) // Assuming each job has a unique ID
-                .update("rating", rating, "review", review)
-                .addOnSuccessListener(aVoid -> {
-                    // Rating and review updated successfully
-                    Toast.makeText(ClientJobHistoryActivity.this, "Rating and review submitted for " + job.getJobName(), Toast.LENGTH_SHORT).show();
-                    // Dismiss the Snackbar after submission
-                    dismissSnackbar();
-                })
-                .addOnFailureListener(e -> {
-                    // Handle errors
-                    Toast.makeText(ClientJobHistoryActivity.this, "Failed to submit rating and review. Please try again.", Toast.LENGTH_SHORT).show();
-                    // Log the exception for debugging
-                    Log.e(TAG, "Error updating rating and review: ", e);
-                });
-    }
-
-    // Method to dismiss the Snackbar
-    private void dismissSnackbar() {
-        if (snackbar != null && snackbar.isShown()) {
-            snackbar.dismiss();
-        }
-    }
 
     public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
 
@@ -159,51 +157,16 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                 textViewJobStartDate.setText("Job Start Date: " + job.getJobStartDate());
 
                 buttonViewDetails.setOnClickListener(v -> {
-                    // Handle button click to view job details
-                    Toast.makeText(itemView.getContext(), "View Details for " + job.getJobName(), Toast.LENGTH_SHORT).show();
-                    // Implement your logic to view job details here
+                    fetchJobDetails(job.getJobId());
                 });
                 buttonRateAndReview.setOnClickListener(v -> {
-                    // Show a Snackbar for rating and reviewing the job
-                    /*Snackbar snackbar = Snackbar.make(v, "Rate this job", Snackbar.LENGTH_INDEFINITE);
-
-                    // Set action to submit the rating and review
-                    snackbar.setAction("Submit", v1 -> {
-                        // Get the rating from the RatingBar
-                        RatingBar ratingBar = (RatingBar) snackbar.getView().findViewById(R.id.ratingBar);
-                        float rating = ratingBar.getRating();
-                        // Get the review from the EditText
-                        EditText editTextReview = (EditText) snackbar.getView().findViewById(R.id.editTextReview);
-                        String review = editTextReview.getText().toString();
-                        // Update Firestore with the rating and review for this job
-                        updateRatingAndReviewForJob(job, rating, review);
-                    });
-
-                    // Get the Snackbar view
-                    View snackbarView = snackbar.getView();
-
-                    // Inflate a custom layout for the Snackbar content
-                    LayoutInflater inflater = LayoutInflater.from(v.getContext());
-                    View customSnackbarView = inflater.inflate(R.layout.snackbar_rate_review, null);
-
-                    // Add the custom layout to the Snackbar view
-                    ViewGroup snackbarLayout = (ViewGroup) snackbarView;
-                    snackbarLayout.addView(customSnackbarView, 0);
-
-                    // Show the Snackbar
-                    snackbar.show();*/
                     // Create an Intent to navigate to the rating and review activity
                     Intent intent = new Intent(ClientJobHistoryActivity.this, RatingAndReviewActivity.class);
-                    // Pass necessary data to the new activity (e.g., job details)
                     intent.putExtra("jobId", job.getJobId());
                     intent.putExtra("jobName", job.getJobName());
                     // Start the activity
                     startActivity(intent);
                 });
-
-
-
-
 
             }
         }

@@ -78,11 +78,15 @@ public class RegistrationActivity extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     String userId = mAuth.getCurrentUser().getUid();
-                                    User user = new User(userId, name, email, phoneNumber,userId);
+                                    String idFieldName = role.equals("client") ? "clientId" : "workerId";
+                                    User user;
+                                    if (role.equals("worker")) {
+                                        user = new User(userId, name, email, phoneNumber, userId); // Assign userId as clientId
+                                    } else {
+                                        user = new User(userId, name, email, phoneNumber); // Assign null for workerId
+                                    }
 
-                                    String idFieldName = role.equals("client") ? "clientID" : "workerID";
 
-                                    // Store user data in the appropriate collection based on role
                                     db.collection(role + "s").document(userId)
                                             .set(user)
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -101,6 +105,9 @@ public class RegistrationActivity extends AppCompatActivity {
                                                     }
                                                 }
                                             });
+
+
+
                                 } else {
                                     // Registration failed
                                     Toast.makeText(RegistrationActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

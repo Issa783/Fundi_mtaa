@@ -188,9 +188,11 @@ public class ViewApplicants extends AppCompatActivity {
                             // Check if the name starts with the search text (case-insensitive)
                             if (name.toLowerCase().startsWith(searchTextLowerCase)) {
                                 String workerId = document.getString("workerId");
+                                String phoneNumber = document.getString("phoneNumber");
+                                String location = document.getString("location");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name, dateOfApplication, experience);
+                                Worker worker = new Worker(workerId, name, phoneNumber,location,dateOfApplication, experience);
                                 workerList.add(worker);
                             }
                         }
@@ -331,7 +333,11 @@ public class ViewApplicants extends AppCompatActivity {
             holder.buttonViewProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(ViewApplicants.this, ViewProfileWor.class);
+
+
+                    // Handle view profile button click
+                    // Implement the logic to view worker's profile
+                    Intent intent = new Intent(ViewApplicants.this, ViewProfileWorkerActivity.class);
                     intent.putExtra("workerId", worker.getWorkerId());
                     startActivity(intent);
                 }
@@ -348,9 +354,6 @@ public class ViewApplicants extends AppCompatActivity {
                     Map<String, Object> assignedJob = new HashMap<>();
                     assignedJob.put("workerId", worker.getWorkerId());
                     assignedJob .put("workerName", worker.getName());
-                    assignedJob.put("phoneNumber", worker.getPhoneNumber());
-                    assignedJob .put("location", worker.getLocation());
-                    assignedJob.put("experience", worker.getExperience());
                     assignedJob.put("clientId", clientId);
                     assignedJob.put("jobId", jobId);
                     assignedJob.put("documentId", documentId);
