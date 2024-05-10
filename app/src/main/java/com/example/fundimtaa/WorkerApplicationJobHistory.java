@@ -80,10 +80,42 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                     Toast.makeText(WorkerApplicationJobHistory.this, "Failed to mark job as done: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+    private void retrieveClientDetails(String jobId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("AssignedJobs").document(jobId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Client details exist in the AssignedJobs document
+                        String clientName = documentSnapshot.getString("clientName");
+                        String clientEmail = documentSnapshot.getString("clientEmail");
+                        String clientPhoneNumber = documentSnapshot.getString("clientPhoneNumber");
+                        String clientLocation = documentSnapshot.getString("clientLocation");
+
+                        // Pass client details to a new activity or dialog
+                        Intent intent = new Intent(WorkerApplicationJobHistory.this, ViewClientProfileActivity.class);
+                        intent.putExtra("clientName", clientName);
+                        intent.putExtra("clientEmail", clientEmail);
+                        intent.putExtra("clientPhoneNumber", clientPhoneNumber);
+                        intent.putExtra("clientLocation", clientLocation);
+                        startActivity(intent);
+                    } else {
+                        // Client details not found in the AssignedJobs document
+                        Toast.makeText(WorkerApplicationJobHistory.this, "Client details not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle Firestore query failure
+                    Toast.makeText(WorkerApplicationJobHistory.this, "Failed to retrieve client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+
     // Method to retrieve additional job details from Firestore
     private void retrieveJobDetails(String jobId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("Jobs").document(jobId)
+        db.collection("AssignedJobs").document(jobId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -190,6 +222,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
         private TextView textViewJobName;
         private TextView textViewJobStartDate;
         private Button buttonViewJobDetails;
+        private  Button buttonViewClientDetails;
         private Button buttonMarkAsDone;
 
         public JobViewHolder(View itemView) {
@@ -197,6 +230,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
             textViewJobName = itemView.findViewById(R.id.textViewJobName);
             textViewJobStartDate = itemView.findViewById(R.id.textViewJobDate);
             buttonViewJobDetails = itemView.findViewById(R.id.buttonViewJobDetails);
+            buttonViewClientDetails = itemView.findViewById(R.id.buttonViewClientDetails);
             buttonMarkAsDone = itemView.findViewById(R.id.buttonMarkAsDone);
         }
 
@@ -208,6 +242,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                 // If the job is pending, show both buttons
                 buttonMarkAsDone.setVisibility(View.VISIBLE);
                 buttonViewJobDetails.setVisibility(View.VISIBLE);
+                buttonViewClientDetails.setVisibility(View.VISIBLE);
 
                 // Set OnClickListener for "Mark as Done" button
                 buttonMarkAsDone.setOnClickListener(v -> {
@@ -219,15 +254,20 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                 buttonViewJobDetails.setOnClickListener(v -> {
                     retrieveJobDetails(job.getJobId());
                 });
+                buttonViewClientDetails.setOnClickListener(v -> {
+                    retrieveClientDetails(job.getJobId());
+                });
             } else {
                 // If the job is completed, hide "Mark as Done" button and only show "View Job Details" button
                 buttonMarkAsDone.setVisibility(View.GONE);
                 buttonViewJobDetails.setVisibility(View.VISIBLE);
+                buttonViewClientDetails.setVisibility(View.GONE);
 
                 // Set OnClickListener for "View Job Details" button
                 buttonViewJobDetails.setOnClickListener(v -> {
                     retrieveJobDetails(job.getJobId());
                 });
+
             }
         }
     }

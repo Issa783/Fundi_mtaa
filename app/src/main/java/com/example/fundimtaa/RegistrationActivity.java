@@ -80,7 +80,7 @@ public class RegistrationActivity extends AppCompatActivity {
                                     String userId = mAuth.getCurrentUser().getUid();
                                     String idFieldName = role.equals("client") ? "clientId" : "workerId";
                                     User user;
-                                    if (role.equals("worker")) {
+                                    if (role.equals("client")) {
                                         user = new User(userId, name, email, phoneNumber, userId); // Assign userId as clientId
                                     } else {
                                         user = new User(userId, name, email, phoneNumber); // Assign null for workerId

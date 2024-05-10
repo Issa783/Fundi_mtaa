@@ -15,6 +15,9 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".ViewClientProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".ViewProfileWorkerActivity"
             android:exported="false" />
         <activity

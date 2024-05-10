@@ -98,6 +98,23 @@ public class ViewJobsActivity extends AppCompatActivity {
                     }
                 });
     }
+    // Method to delete a job from Firestore
+    private void deleteJob(Job job) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("jobs").document(job.getDocumentId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Job deleted successfully
+                    Toast.makeText(ViewJobsActivity.this, "Job deleted successfully", Toast.LENGTH_SHORT).show();
+                    // Remove the job from the RecyclerView's data source
+                    jobList.remove(job);
+                    jobAdapter.notifyDataSetChanged(); // Notify the adapter of the change
+                })
+                .addOnFailureListener(e -> {
+                    // Failed to delete job
+                    Toast.makeText(ViewJobsActivity.this, "Failed to delete job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
     // Implement this method to retrieve the client's ID
     private String getCurrentClientId() {
@@ -115,17 +132,19 @@ public class ViewJobsActivity extends AppCompatActivity {
     private static class JobViewHolder extends RecyclerView.ViewHolder {
         TextView textViewJobName;
         TextView textViewPublishedOn;
-        TextView textViewLocation;
-        Button buttonManage;
+        TextView textViewPrice;
+        Button buttonDelete;
         Button buttonViewWorkers;
+        Button buttonViewJobDetails;
 
         public JobViewHolder(View itemView) {
             super(itemView);
             textViewJobName = itemView.findViewById(R.id.textViewJobName);
             textViewPublishedOn = itemView.findViewById(R.id.textViewPublishedOn);
-            textViewLocation = itemView.findViewById(R.id.textViewLocation);
-            buttonManage = itemView.findViewById(R.id.buttonManage);
+            textViewPrice = itemView.findViewById(R.id.textViewPrice);
+            buttonDelete = itemView.findViewById(R.id.buttonDelete);
             buttonViewWorkers = itemView.findViewById(R.id.buttonViewWorkers);
+            buttonViewJobDetails = itemView.findViewById(R.id.buttonViewJobDetails);
         }
     }
 
@@ -149,21 +168,14 @@ public class ViewJobsActivity extends AppCompatActivity {
             Job job = jobList.get(position);
             holder.textViewJobName.setText("Job Name: " + job.getJobName());
             holder.textViewPublishedOn.setText("Job Start Date: " + job.getJobStartDate());
-            holder.textViewLocation.setText("Location: " + job.getLocation());
+            holder.textViewPrice.setText("Location: " + job.getPrice());
 
-            // Set OnClickListener for the Manage button
-            holder.buttonManage.setOnClickListener(v -> {
-                // Handle manage button click
-                // You can implement the logic to open the post job activity here
-                Toast.makeText(ViewJobsActivity.this, "Manage button clicked for job: " + job.getJobName(), Toast.LENGTH_SHORT).show();
+
+            holder.buttonDelete.setOnClickListener(v -> {
+                deleteJob(job);
             });
 
-            // Set OnClickListener for the View Workers button
-            // Set OnClickListener for the View Workers button
             holder.buttonViewWorkers.setOnClickListener(v -> {
-                // Handle view workers button clic
-
-                // Retrieve the job ID for the selected job
                 String jobId = job.getJobId();
                 String documentId = job.getDocumentId();
 
@@ -178,6 +190,16 @@ public class ViewJobsActivity extends AppCompatActivity {
                 intent.putExtra("price", job.getPrice());
                 intent.putExtra("jobDescription", job.getJobDescription());
                 intent.putExtra("clientId",job.getClientId());
+                startActivity(intent);
+            });
+            holder.buttonViewJobDetails.setOnClickListener(v -> {
+                Intent intent = new Intent(ViewJobsActivity.this, JobDetailsActivity.class);
+                intent.putExtra("jobName", job.getJobName());
+                intent.putExtra("jobStartDate", job.getJobStartDate());
+                intent.putExtra("minExperience", job.getMinExperience());
+                intent.putExtra("location", job.getLocation());
+                intent.putExtra("price", job.getPrice());
+                intent.putExtra("jobDescription", job.getJobDescription());
                 startActivity(intent);
             });
 

@@ -28,7 +28,7 @@
                 android:textSize="14sp" />
 
             <TextView
-                android:id="@+id/textViewLocation"
+                android:id="@+id/textViewPrice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="14sp" />
@@ -42,10 +42,10 @@
                 android:layout_marginTop="8dp">
 
                 <Button
-                    android:id="@+id/buttonManage"
+                    android:id="@+id/buttonDelete"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Manage" />
+                    android:text="Delete Job" />
 
                 <Button
                     android:id="@+id/buttonViewWorkers"
@@ -55,10 +55,10 @@
 
                 <!-- Button for Rating and Review -->
                 <Button
-                    android:id="@+id/buttonRateAndReview"
+                    android:id="@+id/buttonViewJobDetails"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Rate and Review" />
+                    android:text="View Job Details" />
 
             </LinearLayout>
 

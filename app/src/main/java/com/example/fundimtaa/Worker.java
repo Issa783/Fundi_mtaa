@@ -8,16 +8,17 @@ public class Worker {
     private String dateOfApplication;
     private String experience;
 
-    public Worker(String workerId,String name,String dateOfApplication,String experience,String location,
-    String phoneNumber) {
+    public Worker(String workerId, String name, String location, String phoneNumber, String dateOfApplication, String experience) {
         this.workerId = workerId;
         this.name = name;
-        this.dateOfApplication = dateOfApplication;
-        this.experience =experience;
         this.location = location;
         this.phoneNumber = phoneNumber;
-
+        this.dateOfApplication = dateOfApplication;
+        this.experience = experience;
     }
+
+
+
     public String getWorkerId(){return  workerId;}
 
     public String getName() {

@@ -237,71 +237,7 @@ public class ViewApplicants extends AppCompatActivity {
                     }
                 });
     }
-    private void retrieveWorkerDeviceToken(String jobId) {
-        mFirestore.collection("job_applications").whereEqualTo("jobId", jobId).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                        String workerId = documentSnapshot.getString("workerId");
-                        if (workerId != null) {
-                            // Retrieve the worker's device token
-                            mFirestore.collection("workers").document(workerId).get()
-                                    .addOnSuccessListener(workerDocument -> {
-                                        if (workerDocument.exists()) {
-                                            String workerDeviceToken = workerDocument.getString("deviceToken");
-                                            if (workerDeviceToken != null) {
-                                                // Now you have the worker's device token
-                                                // Send notification to the worker
-                                                sendNotificationToWorker(workerDeviceToken);
-                                            } else {
-                                                Toast.makeText(ViewApplicants.this, "Worker device token not found", Toast.LENGTH_SHORT).show();
-                                            }
-                                        } else {
-                                            Toast.makeText(ViewApplicants.this, "Worker details not found", Toast.LENGTH_SHORT).show();
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(ViewApplicants.this, "Error fetching worker details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    });
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(ViewApplicants.this, "Error fetching job applications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-    }
-    private void sendNotificationToWorker(String workerDeviceToken) {
-        String message = "You have been assigned a job.";
-        String title = "Job Assignment";
 
-        Map<String, String> notificationMessage = new HashMap<>();
-        notificationMessage.put("title", title);
-        notificationMessage.put("message", message);
-
-        // Send the notification
-        FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(workerDeviceToken + "@gcm.googleapis.com")
-                .setMessageId(Integer.toString((int) System.currentTimeMillis()))
-                .setData(notificationMessage)
-                .build());
-    }
-
-
-
-    // Method to handle the result of sending the notification
-    private void handleNotificationResult(Task<Void> task) {
-        task.addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                // Notification sent successfully
-                Toast.makeText(ViewApplicants.this, "Notification sent successfully", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                // Failed to send notification
-                Toast.makeText(ViewApplicants.this, "Failed to send notification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
 
         private List<Worker> workerList;
@@ -310,7 +246,7 @@ public class ViewApplicants extends AppCompatActivity {
         private String startDate;
         private String minExperience;
         private String location;
-        private String price;// Add jobName field
+        private String price;
         private String jobDescription;
         private String clientId;
         private String documentId;
@@ -320,7 +256,7 @@ public class ViewApplicants extends AppCompatActivity {
                              String clientId,String documentId) {
             this.workerList = workerList;
             this.jobId = jobId;
-            this.jobName = jobName; // Assign the jobName
+            this.jobName = jobName;
             this.startDate = startDate;
             this.minExperience = minExperience;
             this.location = location;
@@ -358,45 +294,66 @@ public class ViewApplicants extends AppCompatActivity {
             });
 
             // Set OnClickListener for the "Assign Job" button
-                   holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
+            // Set OnClickListener for the "Assign Job" button
+            holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     // Retrieve the worker associated with this item
                     Worker worker = workerList.get(holder.getAdapterPosition());
-                    // Store the assigned job details in Firestore
-                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    Map<String, Object> assignedJob = new HashMap<>();
-                    assignedJob.put("workerId", worker.getWorkerId());
-                    assignedJob .put("workerName", worker.getName());
-                    assignedJob.put("clientId", clientId);
-                    assignedJob.put("jobId", jobId);
-                    assignedJob.put("documentId", documentId);
-                    assignedJob.put("jobName", jobName);
-                    assignedJob.put("jobStartDate", startDate);
-                    assignedJob.put("minExperience", minExperience);
-                    assignedJob.put("location", location);
-                    assignedJob.put("price", price);
-                    assignedJob.put("jobDescription", jobDescription);
-                    assignedJob.put("rating", 0); // Initialize the rating with a default value, e.g., 0
-                    assignedJob.put("review", ""); // Initialize the review with an empty string
+                    // Now fetch client details and store them in AssignedJobs collection
+                    FirebaseFirestore.getInstance().collection("clients").document(clientId).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    String clientName = documentSnapshot.getString("name");
+                                    String clientPhoneNumber = documentSnapshot.getString("phoneNumber");
+                                    String clientLocation = documentSnapshot.getString("location");
+                                    String clientEmail = documentSnapshot.getString("email");
 
-                    assignedJob.put("assignedDate", new Date()); // You can use the current date/time as the assigned date
-                    db.collection("AssignedJobs")
-                            .add(assignedJob)
-                            .addOnSuccessListener(documentReference -> {
-                                String jobId = documentReference.getId(); // Retrieve the generated document ID
+                                    // Now you have client details, you can store them in the AssignedJobs collection
+                                    Map<String, Object> assignedJob = new HashMap<>();
+                                    assignedJob.put("clientId", clientId);
+                                    assignedJob.put("clientName", clientName);
+                                    assignedJob.put("clientPhoneNumber", clientPhoneNumber);
+                                    assignedJob.put("clientLocation", clientLocation);
+                                    assignedJob.put("clientEmail", clientEmail);
+                                    // Add other job details
+                                    assignedJob.put("workerId", worker.getWorkerId());
+                                    assignedJob .put("workerName", worker.getName());
+                                    assignedJob.put("jobId", jobId);
+                                    assignedJob.put("jobName", jobName);
+                                    assignedJob.put("jobStartDate", startDate);
+                                    assignedJob.put("minExperience", minExperience);
+                                    assignedJob.put("location", location);
+                                    assignedJob.put("price", price);
+                                    assignedJob.put("jobDescription", jobDescription);
+                                    assignedJob.put("rating", 0); // Initialize the rating with a default value, e.g., 0
+                                    assignedJob.put("review", ""); // Initialize the review with an empty string
+                                    assignedJob.put("assignedDate", new Date()); // You can use the current date/time as the assigned date
 
-                                // Update the job document with the jobId
-                                documentReference.update("jobId", jobId);
-                                // Job assigned successfully, you can display a message or perform any other action if needed
-                                Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                                    db.collection("AssignedJobs")
+                                            .add(assignedJob)
+                                            .addOnSuccessListener(documentReference -> {
+                                                String jobId = documentReference.getId(); // Retrieve the generated document ID
+
+                                                // Update the job document with the jobId
+                                                documentReference.update("jobId", jobId);
+                                                // Job assigned successfully, you can display a message or perform any other action if needed
+                                                Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                // Handle errors if any
+                                                Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            });
+                                } else {
+                                    Toast.makeText(ViewApplicants.this, "Client details not found", Toast.LENGTH_SHORT).show();
+                                }
                             })
                             .addOnFailureListener(e -> {
-                                // Handle errors if any
-                                Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ViewApplicants.this, "Error fetching client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             });
                 }
             });
+
 
 
         };

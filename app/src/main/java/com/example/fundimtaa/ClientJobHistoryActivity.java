@@ -49,18 +49,16 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
         // Load assigned jobs for the current client
         loadAssignedJobsForClient();
     }
-    private void fetchJobDetails(String jobId) {
-        // Initialize Firestore
+    private void retrieveJobDetails(String jobId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Query Firestore to fetch details of the specified job
-        db.collection("jobs").document(jobId)
+        db.collection("AssignedJobs").document(jobId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
+                        // Job document exists, retrieve additional details
                         Job job = documentSnapshot.toObject(Job.class);
                         if (job != null) {
-                            // Display job details or pass them to the JobDetailsActivity
+                            // Pass job details to the JobDetailsActivity
                             Intent intent = new Intent(ClientJobHistoryActivity.this, JobDetailsActivity.class);
                             intent.putExtra("jobName", job.getJobName());
                             intent.putExtra("jobStartDate", job.getJobStartDate());
@@ -69,13 +67,18 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                             intent.putExtra("price", job.getPrice());
                             intent.putExtra("jobDescription", job.getJobDescription());
                             startActivity(intent);
+                        } else {
+                            // Handle case where job object is null
+                            Toast.makeText(ClientJobHistoryActivity.this, "Failed to retrieve job details", Toast.LENGTH_SHORT).show();
                         }
                     } else {
+                        // Job document does not exist
                         Toast.makeText(ClientJobHistoryActivity.this, "Job details not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(ClientJobHistoryActivity.this, "Failed to fetch job details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    // Handle Firestore query failure
+                    Toast.makeText(ClientJobHistoryActivity.this, "Failed to retrieve job details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -157,7 +160,9 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                 textViewJobStartDate.setText("Job Start Date: " + job.getJobStartDate());
 
                 buttonViewDetails.setOnClickListener(v -> {
-                    fetchJobDetails(job.getJobId());
+                    // Retrieve job details from Firestore and start JobDetailsActivity
+                    retrieveJobDetails(job.getJobId());
+
                 });
                 buttonRateAndReview.setOnClickListener(v -> {
                     // Create an Intent to navigate to the rating and review activity

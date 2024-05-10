@@ -15,12 +15,12 @@ public class User {
 
 
 
-    public User(String userId, String name, String email, String phoneNumber,String workerId) {
+    public User(String userId, String name, String email, String phoneNumber,String clientId) {
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.workerId = workerId;
+        this.clientId = clientId;
     }
     public User(String userId, String name, String email, String phoneNumber) {
 

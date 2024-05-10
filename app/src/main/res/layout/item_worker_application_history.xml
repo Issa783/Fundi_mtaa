@@ -36,6 +36,13 @@
             android:text="View Job Details"
             android:layout_marginTop="16dp"
             android:background="@color/my_primary"/>
+        <Button
+            android:id="@+id/buttonViewClientDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Client Details"
+            android:layout_marginTop="16dp"
+            android:background="@color/my_primary"/>
 
         <Button
             android:id="@+id/buttonMarkAsDone"
