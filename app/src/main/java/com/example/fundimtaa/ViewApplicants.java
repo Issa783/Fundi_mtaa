@@ -92,6 +92,10 @@ public class ViewApplicants extends AppCompatActivity {
         jobId = getIntent().getStringExtra("jobId");
         String jobName = getIntent().getStringExtra("jobName");
         String startDate = getIntent().getStringExtra("jobStartDate");
+        String minExperience = getIntent().getStringExtra("minExperience");
+        String location = getIntent().getStringExtra("location");
+        String price = getIntent().getStringExtra("price");
+        String jobDescription = getIntent().getStringExtra("jobDescription");
         String clientId = getIntent().getStringExtra("clientId");
         String documentId = getIntent().getStringExtra("documentId");
 
@@ -104,7 +108,8 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
 
         // Initialize adapter
-        workerAdapter = new WorkerAdapter(workerList,jobId,jobName,startDate,clientId,documentId);
+        workerAdapter = new WorkerAdapter(workerList,jobId,jobName,startDate,minExperience
+                ,location,price,jobDescription,clientId,documentId);
 
         // Set adapter to RecyclerView
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -303,15 +308,24 @@ public class ViewApplicants extends AppCompatActivity {
         private String jobId;
         private String jobName;// Add jobName field
         private String startDate;
+        private String minExperience;
+        private String location;
+        private String price;// Add jobName field
+        private String jobDescription;
         private String clientId;
         private String documentId;
 
         public WorkerAdapter(List<Worker> workerList,String jobId,String jobName,String startDate,
+                             String minExperience,String location,String price,String jobDescription,
                              String clientId,String documentId) {
             this.workerList = workerList;
             this.jobId = jobId;
             this.jobName = jobName; // Assign the jobName
             this.startDate = startDate;
+            this.minExperience = minExperience;
+            this.location = location;
+            this.price = price;
+            this.jobDescription = jobDescription;
             this.clientId = clientId;
             this.documentId = documentId;
         }
@@ -359,6 +373,10 @@ public class ViewApplicants extends AppCompatActivity {
                     assignedJob.put("documentId", documentId);
                     assignedJob.put("jobName", jobName);
                     assignedJob.put("jobStartDate", startDate);
+                    assignedJob.put("minExperience", minExperience);
+                    assignedJob.put("location", location);
+                    assignedJob.put("price", price);
+                    assignedJob.put("jobDescription", jobDescription);
                     assignedJob.put("rating", 0); // Initialize the rating with a default value, e.g., 0
                     assignedJob.put("review", ""); // Initialize the review with an empty string
 

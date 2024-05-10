@@ -173,6 +173,10 @@ public class ViewJobsActivity extends AppCompatActivity {
                 intent.putExtra("documentId", documentId);
                 intent.putExtra("jobName", job.getJobName());
                 intent.putExtra("jobStartDate", job.getJobStartDate());
+                intent.putExtra("minExperience", job.getMinExperience());
+                intent.putExtra("location", job.getLocation());
+                intent.putExtra("price", job.getPrice());
+                intent.putExtra("jobDescription", job.getJobDescription());
                 intent.putExtra("clientId",job.getClientId());
                 startActivity(intent);
             });
