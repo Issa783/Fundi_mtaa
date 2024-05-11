@@ -35,7 +35,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_worker_profile);
 
         mAuth = FirebaseAuth.getInstance();
-       // String workerId = getIntent().getStringExtra("workerId");
+
 
         // Initialize layoutRatingsReviews LinearLayout
         layoutRatingsReviews = findViewById(R.id.layoutRatingsReviews);

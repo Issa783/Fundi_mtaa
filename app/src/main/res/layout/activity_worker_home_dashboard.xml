@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:text="Search jobs"
                     android:layout_gravity="center_horizontal"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"/>
             </LinearLayout>
@@ -77,9 +77,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="History"
+                    android:text="Jobs Assigned"
                     android:layout_gravity="center_horizontal"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"/>
             </LinearLayout>
@@ -110,7 +110,7 @@
                     android:layout_height="wrap_content"
                     android:text="Notification"
                     android:layout_gravity="center_horizontal"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"/>
             </LinearLayout>
@@ -142,12 +142,13 @@
                     android:layout_height="wrap_content"
                     android:text="Profile"
                     android:layout_gravity="center_horizontal"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
+            android:id="@+id/card_logOut"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:cardCornerRadius="15dp"
@@ -173,7 +174,7 @@
                     android:layout_height="wrap_content"
                     android:text="Logout"
                     android:layout_gravity="center_horizontal"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"/>
             </LinearLayout>

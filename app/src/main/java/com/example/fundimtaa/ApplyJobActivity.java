@@ -99,7 +99,7 @@ public class ApplyJobActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private void saveJobApplication(String name, String date, String phoneNumber,String location,String experience) {
+    private void saveJobApplication(String name, String date, String phoneNumber, String location, String experience) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String workerId = currentUser != null ? currentUser.getUid() : null;
         jobId = getIntent().getStringExtra("jobId");
@@ -109,35 +109,58 @@ public class ApplyJobActivity extends AppCompatActivity {
             return;
         }
 
-        Map<String, Object> application = new HashMap<>();
-        application.put("name", name);
-        application.put("dateOfApplication", date);
-        application.put("phoneNumber", phoneNumber);
-        application.put("location", location);
-        application.put("experience", experience);
-        application.put("workerId", workerId);
-        application.put("jobId",jobId);
-
+        // Check if the worker has already applied for the job
         db.collection("job_applications")
-                .add(application)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(ApplyJobActivity.this, "Application submitted successfully", Toast.LENGTH_SHORT).show();
-                    editTextName.setText("");
-                    editTextDate.setText("");
-                    editTextPhoneNumber.setText("");
-                    editTextLocation.setText("");
-                    editTextExperience.setText("");
+                .whereEqualTo("jobId", jobId)
+                .whereEqualTo("workerId", workerId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (!task.getResult().isEmpty()) {
+                            // Worker has already applied for this job
+                            Toast.makeText(ApplyJobActivity.this, "You have already applied for this job", Toast.LENGTH_SHORT).show();
+                            editTextName.setText("");
+                            editTextDate.setText("");
+                            editTextPhoneNumber.setText("");
+                            editTextLocation.setText("");
+                            editTextExperience.setText("");
+                        } else {
+                            // Worker has not applied for this job yet, proceed with application
+                            Map<String, Object> application = new HashMap<>();
+                            application.put("name", name);
+                            application.put("dateOfApplication", date);
+                            application.put("phoneNumber", phoneNumber);
+                            application.put("location", location);
+                            application.put("experience", experience);
+                            application.put("workerId", workerId);
+                            application.put("jobId", jobId);
 
-                    // Retrieve jobId from the newly added document
-                    String jobId = documentReference.getId();
+                            db.collection("job_applications")
+                                    .add(application)
+                                    .addOnSuccessListener(documentReference -> {
+                                        Toast.makeText(ApplyJobActivity.this, "Application submitted successfully", Toast.LENGTH_SHORT).show();
+                                        editTextName.setText("");
+                                        editTextDate.setText("");
+                                        editTextPhoneNumber.setText("");
+                                        editTextLocation.setText("");
+                                        editTextExperience.setText("");
 
-                    // Retrieve client's device token and send notification
-                    retrieveClientDeviceToken(jobId);
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(ApplyJobActivity.this, "Failed to submit application: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        // Retrieve jobId from the newly added document
+                                        String jobId = documentReference.getId();
+
+                                        // Retrieve client's device token and send notification
+                                        retrieveClientDeviceToken(jobId);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(ApplyJobActivity.this, "Failed to submit application: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    } else {
+                        Toast.makeText(ApplyJobActivity.this, "Error checking application status: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
+
 
     private void retrieveClientDeviceToken(String jobId) {
         mFirestore.collection("jobs").document(jobId).get()

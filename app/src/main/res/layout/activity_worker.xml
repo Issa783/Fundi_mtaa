@@ -85,7 +85,7 @@
                 android:hint="Enter your specialization"
                 android:layout_below="@id/textViewSpecialization"
                 android:layout_marginTop="8dp" />
-
+        <!--
             <TextView
                 android:id="@+id/textViewCVName"
                 android:layout_width="wrap_content"
@@ -108,14 +108,14 @@
                 android:layout_height="wrap_content"
                 android:text="Upload CV"
                 android:layout_below="@id/editTextCVName"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="16dp" /> -->
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSubmitRegistration"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Submit Registration"
-                android:layout_below="@+id/buttonUploadCV"
+                android:layout_below="@+id/editTextSpecialization"
                 android:layout_marginTop="16dp" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

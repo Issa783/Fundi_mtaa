@@ -15,6 +15,12 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".UpdateClientProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ClientProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".ViewClientProfileActivity"
             android:exported="false" />
         <activity

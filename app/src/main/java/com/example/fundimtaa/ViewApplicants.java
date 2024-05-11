@@ -1,4 +1,5 @@
 package com.example.fundimtaa;
+
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
@@ -38,11 +39,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ViewApplicants extends AppCompatActivity {
-
+    // Add a field to track whether the job has been assigned
+    private boolean isJobAssigned = false;
     private RecyclerView recyclerViewApplicants;
     private WorkerAdapter workerAdapter;
     private List<Worker> workerList;
@@ -55,6 +59,9 @@ public class ViewApplicants extends AppCompatActivity {
     private ImageView imageViewFilter;
     private List<String> suggestionsList = new ArrayList<>();
     private ArrayAdapter<String> adapter;
+
+    // Define a map to store assigned workers for each client
+    private Map<String, Set<String>> assignedJobsMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,8 +115,8 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
 
         // Initialize adapter
-        workerAdapter = new WorkerAdapter(workerList,jobId,jobName,startDate,minExperience
-                ,location,price,jobDescription,clientId,documentId);
+        workerAdapter = new WorkerAdapter(workerList, jobId, jobName, startDate, minExperience
+                , location, price, jobDescription, clientId, documentId);
 
         // Set adapter to RecyclerView
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -170,6 +177,7 @@ public class ViewApplicants extends AppCompatActivity {
         // Show dialog
         dialog.show();
     }
+
     // Helper method to parse experience strings into integers
     private int parseExperience(String experience) {
         // Remove non-numeric characters and parse the remaining string as an integer
@@ -197,7 +205,7 @@ public class ViewApplicants extends AppCompatActivity {
                                 String location = document.getString("location");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name, phoneNumber,location,dateOfApplication, experience);
+                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience);
                                 workerList.add(worker);
                             }
                         }
@@ -207,8 +215,6 @@ public class ViewApplicants extends AppCompatActivity {
                     }
                 });
     }
-
-
 
     private void loadWorkers() {
         // Query Firestore to fetch workers for the specified job ID
@@ -227,7 +233,7 @@ public class ViewApplicants extends AppCompatActivity {
                                 String location = document.getString("location");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name,phoneNumber,location, dateOfApplication, experience);
+                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience);
                                 workerList.add(worker);
                             }
                             workerAdapter.notifyDataSetChanged();
@@ -251,9 +257,9 @@ public class ViewApplicants extends AppCompatActivity {
         private String clientId;
         private String documentId;
 
-        public WorkerAdapter(List<Worker> workerList,String jobId,String jobName,String startDate,
-                             String minExperience,String location,String price,String jobDescription,
-                             String clientId,String documentId) {
+        public WorkerAdapter(List<Worker> workerList, String jobId, String jobName, String startDate,
+                             String minExperience, String location, String price, String jobDescription,
+                             String clientId, String documentId) {
             this.workerList = workerList;
             this.jobId = jobId;
             this.jobName = jobName;
@@ -275,7 +281,7 @@ public class ViewApplicants extends AppCompatActivity {
         @Override
         public void onBindViewHolder(WorkerViewHolder holder, int position) {
             Worker worker = workerList.get(position);
-            holder.textViewWorkerName.setText("Name: " + worker.getName());
+            holder.textViewWorkerName.setText("Worker Name: " + worker.getName());
             holder.textViewDateOfApplication.setText("Applied on: " + worker.getDateOfApplication());
             holder.textViewExperience.setText("Experience: " + worker.getExperience());
 
@@ -283,8 +289,6 @@ public class ViewApplicants extends AppCompatActivity {
             holder.buttonViewProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-
                     // Handle view profile button click
                     // Implement the logic to view worker's profile
                     Intent intent = new Intent(ViewApplicants.this, ViewProfileWorkerActivity.class);
@@ -294,10 +298,26 @@ public class ViewApplicants extends AppCompatActivity {
             });
 
             // Set OnClickListener for the "Assign Job" button
-            // Set OnClickListener for the "Assign Job" button
             holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    // Check if the job has already been assigned
+
+                    if (isJobAssigned) {
+                        Toast.makeText(ViewApplicants.this, "The job has already been assigned to a worker " , Toast.LENGTH_SHORT).show();
+                        return; // Prevent further execution
+                    }
+                    // Check if the job has already been assigned to the same worker
+                    if (isJobAlreadyAssigned(jobId, worker.getWorkerId())) {
+                        Toast.makeText(ViewApplicants.this, "This job has already been assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                        return; // Prevent further execution
+                    }
+                    // Check if the job is already assigned to the worker by the client
+                    if (isJobAssignedToWorker(clientId, worker.getWorkerId())) {
+                        // Show notification to the client
+                        Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                        return; // Prevent further execution
+                    }
                     // Retrieve the worker associated with this item
                     Worker worker = workerList.get(holder.getAdapterPosition());
                     // Now fetch client details and store them in AssignedJobs collection
@@ -318,7 +338,7 @@ public class ViewApplicants extends AppCompatActivity {
                                     assignedJob.put("clientEmail", clientEmail);
                                     // Add other job details
                                     assignedJob.put("workerId", worker.getWorkerId());
-                                    assignedJob .put("workerName", worker.getName());
+                                    assignedJob.put("workerName", worker.getName());
                                     assignedJob.put("jobId", jobId);
                                     assignedJob.put("jobName", jobName);
                                     assignedJob.put("jobStartDate", startDate);
@@ -337,6 +357,10 @@ public class ViewApplicants extends AppCompatActivity {
 
                                                 // Update the job document with the jobId
                                                 documentReference.update("jobId", jobId);
+                                                // Update the assigned jobs map
+                                                Set<String> assignedWorkers = assignedJobsMap.getOrDefault(clientId, new HashSet<>());
+                                                assignedWorkers.add(worker.getWorkerId());
+                                                assignedJobsMap.put(clientId, assignedWorkers);
                                                 // Job assigned successfully, you can display a message or perform any other action if needed
                                                 Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                             })
@@ -351,17 +375,18 @@ public class ViewApplicants extends AppCompatActivity {
                             .addOnFailureListener(e -> {
                                 Toast.makeText(ViewApplicants.this, "Error fetching client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             });
+                    isJobAssigned = true;
                 }
+
             });
+        }
 
-
-
-        };
         @Override
         public int getItemCount() {
             return workerList.size();
         }
     }
+
     private static class WorkerViewHolder extends RecyclerView.ViewHolder {
         TextView textViewWorkerName;
         TextView textViewDateOfApplication;
@@ -379,5 +404,14 @@ public class ViewApplicants extends AppCompatActivity {
         }
     }
 
-}
+    // Method to check if the job is already assigned to the worker by the client
+    private boolean isJobAssignedToWorker(String clientId, String workerId) {
+        Set<String> assignedWorkers = assignedJobsMap.get(clientId);
+        return assignedWorkers != null && assignedWorkers.contains(workerId);
+    }
+    private boolean isJobAlreadyAssigned(String jobId, String workerId) {
+        return assignedJobsMap.containsKey(jobId) && assignedJobsMap.get(jobId).contains(workerId);
+    }
 
+
+}

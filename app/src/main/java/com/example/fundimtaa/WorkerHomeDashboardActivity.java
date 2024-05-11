@@ -19,6 +19,8 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
         CardView searchJobsCard = findViewById(R.id.search_Jobs_Card);
         CardView workerhistory = findViewById(R.id.worker_history);
         CardView profileCard = findViewById(R.id.card_profile);
+        CardView logOutCard = findViewById(R.id.card_logOut);
+
 
 
         // Set OnClickListener for the search jobs card
@@ -44,5 +46,13 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+          logOutCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Close the app
+                finishAffinity();
+            }
+        });
+
     }
 }
