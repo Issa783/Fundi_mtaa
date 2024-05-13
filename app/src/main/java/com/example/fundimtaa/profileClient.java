@@ -8,14 +8,14 @@ public class profileClient {
     private  String about;
     private String clientId;
     private String userId;
-
+private  String deviceToken;
 
     public profileClient() {
         // Default constructor required for Firestore
     }
 
     public profileClient(String name, String email, String phoneNumber, String location,String about,String clientId
-                       ,String userId ) {
+                       ,String userId,String deviceToken ) {
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
@@ -23,6 +23,7 @@ public class profileClient {
         this.about = about;
         this.clientId = clientId;
         this.userId = userId;
+        this.deviceToken = deviceToken;
 
 
     }
@@ -82,5 +83,13 @@ public class profileClient {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
+    public void setDeviceToken(String deviceToken) {
+        this.deviceToken = deviceToken;
     }
 }

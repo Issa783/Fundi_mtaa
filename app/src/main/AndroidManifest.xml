@@ -75,9 +75,7 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service> <!-- Add default notification channel ID (if using Android Oreo or higher) -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="@string/default_notification_channel_id" />
+
 
         <activity
             android:name=".JobDetailsActivity"

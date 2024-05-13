@@ -168,7 +168,7 @@ public class ViewJobsActivity extends AppCompatActivity {
             Job job = jobList.get(position);
             holder.textViewJobName.setText("Job Name: " + job.getJobName());
             holder.textViewPublishedOn.setText("Job Start Date: " + job.getJobStartDate());
-            holder.textViewPrice.setText("Location: " + job.getPrice());
+            holder.textViewPrice.setText("Price: " + job.getPrice());
 
 
             holder.buttonDelete.setOnClickListener(v -> {

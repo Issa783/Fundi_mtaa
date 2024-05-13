@@ -1,9 +1,12 @@
 package com.example.fundimtaa;
 
+import static com.google.firebase.messaging.Constants.MessagePayloadKeys.SENDER_ID;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -21,8 +24,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ApplyJobActivity extends AppCompatActivity {
+    // Declare messageId as a class variable
+    private AtomicInteger messageId = new AtomicInteger(0);
 
     private EditText editTextName;
     private EditText editTextPhoneNumber;
@@ -70,7 +76,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                     Toast.makeText(ApplyJobActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 } else {
                     // Save details to the database and send notification
-                    saveJobApplication(name, date, phoneNumber,location,experience);
+                    saveJobApplication(name, date, phoneNumber, location, experience);
                 }
             }
         });
@@ -147,9 +153,8 @@ public class ApplyJobActivity extends AppCompatActivity {
 
                                         // Retrieve jobId from the newly added document
                                         String jobId = documentReference.getId();
-
-                                        // Retrieve client's device token and send notification
-                                        retrieveClientDeviceToken(jobId);
+                                        documentReference.update("jobId", jobId);
+                                        notifyClientAboutJobApplication(jobId); // Notify client about the job application
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(ApplyJobActivity.this, "Failed to submit application: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -161,54 +166,55 @@ public class ApplyJobActivity extends AppCompatActivity {
                 });
     }
 
+    private void notifyClientAboutJobApplication(String jobId) {
+        Log.d("NotifyDebug", "Attempting to notify client about job application");
 
-    private void retrieveClientDeviceToken(String jobId) {
-        mFirestore.collection("jobs").document(jobId).get()
+        // Retrieve client's FCM token based on jobId
+        db.collection("jobs").document(jobId)
+                .get()
                 .addOnSuccessListener(documentSnapshot -> {
+                    Log.d("NotifyDebug", "Retrieved job document successfully");
                     if (documentSnapshot.exists()) {
                         String clientId = documentSnapshot.getString("clientId");
-                        if (clientId != null) {
-                            mFirestore.collection("clients").document(clientId).get()
+                        if (clientId != null && !clientId.isEmpty()) {
+                            // Retrieve client's FCM token from the clients collection
+                            db.collection("clients").document(clientId)
+                                    .get()
                                     .addOnSuccessListener(clientDocument -> {
+                                        Log.d("NotifyDebug", "Retrieved client document successfully");
                                         if (clientDocument.exists()) {
-                                            String clientDeviceToken = clientDocument.getString("deviceToken");
-                                            if (clientDeviceToken != null) {
-                                                // Now you have the client's device token
-                                                // Send notification to the client
-                                                sendNotificationToClient(clientDeviceToken);
-                                            } else {
-                                                Toast.makeText(ApplyJobActivity.this, "Client device token not found", Toast.LENGTH_SHORT).show();
+                                            String clientFCMToken = clientDocument.getString("deviceToken");
+                                            if (clientFCMToken != null && !clientFCMToken.isEmpty()) {
+                                                // Construct notification payload
+                                                Map<String, String> notification = new HashMap<>();
+                                                notification.put("title", "New Job Application");
+                                                notification.put("body", "A worker has applied for your job.");
+
+                                                // Construct message payload
+                                                Map<String, Object> message = new HashMap<>();
+                                                message.put("token", clientFCMToken);
+                                                message.put("notification", notification);
+
+                                                // Send notification
+                                                FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(SENDER_ID + "@gcm.googleapis.com")
+                                                        .setMessageId(Integer.toString(messageId.incrementAndGet()))
+                                                        .setData((Map<String, String>) (Map<?, ?>) message) // Explicit cast to Map<String, String>
+                                                        .build());
+                                                Log.d("NotifyDebug", "Notification sent successfully");
                                             }
-                                        } else {
-                                            Toast.makeText(ApplyJobActivity.this, "Client details not found", Toast.LENGTH_SHORT).show();
                                         }
                                     })
                                     .addOnFailureListener(e -> {
-                                        Toast.makeText(ApplyJobActivity.this, "Error fetching client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        Log.e("NotifyDebug", "Failed to retrieve client's FCM token: " + e.getMessage());
                                     });
-                        } else {
-                            Toast.makeText(ApplyJobActivity.this, "Client ID not found for the job", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(ApplyJobActivity.this, "Job details not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(ApplyJobActivity.this, "Error fetching job details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("NotifyDebug", "Failed to retrieve job document: " + e.getMessage());
                 });
     }
 
-    private void sendNotificationToClient(String clientDeviceToken) {
-        String message = "A worker has applied for the job you posted";
-        String title = "New Job Application";
 
-        Map<String, String> notificationMessage = new HashMap<>();
-        notificationMessage.put("title", title);
-        notificationMessage.put("message", message);
 
-        FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(clientDeviceToken + "@gcm.googleapis.com")
-                .setMessageId(Integer.toString((int) System.currentTimeMillis()))
-                .setData(notificationMessage)
-                .build());
-    }
 }

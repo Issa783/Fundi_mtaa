@@ -95,6 +95,8 @@ public class UpdateClientProfileActivity extends AppCompatActivity {
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
+                            String userId = documentSnapshot.getString("userId");
+
                             // Include clientId and userId in the updated profile data
                             profileClient updatedProfile = new profileClient(
                                     name,
@@ -103,7 +105,8 @@ public class UpdateClientProfileActivity extends AppCompatActivity {
                                     location,
                                     about,
                                     clientId,
-                                    documentSnapshot.getString("userId") // Include the existing userId
+                                    userId,
+                                    documentSnapshot.getString("deviceToken") // Include the existing userId
                             );
                             // Update user profile in Firestore
                             db.collection("clients").document(clientId)

@@ -29,16 +29,16 @@ import java.util.Map;
 public class WorkerActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
-    private static final int PICK_PDF_REQUEST = 2;
+  /*  private static final int PICK_PDF_REQUEST = 2;
     private Uri cvUri;
     private StorageReference cvStorageReference;
-    private EditText editTextCVName;
+    private EditText editTextCVName;*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_worker);
-        cvStorageReference  = FirebaseStorage.getInstance().getReference("cv_uploads");
-        editTextCVName = findViewById(R.id.editTextCVName);
+       // cvStorageReference  = FirebaseStorage.getInstance().getReference("cv_uploads");
+        //editTextCVName = findViewById(R.id.editTextCVName);
 
         db = FirebaseFirestore.getInstance();
 
@@ -51,15 +51,15 @@ public class WorkerActivity extends AppCompatActivity {
         EditText editTextExperience = findViewById(R.id.editTextExperience);
         EditText editTextLocation = findViewById(R.id.editTextLocation);
         EditText editTextSpecialization = findViewById(R.id.editTextSpecialization);
-        EditText editTextCVName = findViewById(R.id.editTextCVName);
-        Button buttonUploadCV = findViewById(R.id.buttonUploadCV);
+       // EditText editTextCVName = findViewById(R.id.editTextCVName);
+        //Button buttonUploadCV = findViewById(R.id.buttonUploadCV);
         Button buttonSubmit = findViewById(R.id.buttonSubmitRegistration);
-        buttonUploadCV.setOnClickListener(new View.OnClickListener() {
+     /*   buttonUploadCV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openPdfFileChooser();
             }
-        });
+        });*/
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,7 +68,7 @@ public class WorkerActivity extends AppCompatActivity {
                 String experience = editTextExperience.getText().toString().trim();
                 String location = editTextLocation.getText().toString().trim();
                 String specialization = editTextSpecialization.getText().toString().trim();
-                String cvName = editTextCVName.getText().toString().trim();
+                //String cvName = editTextCVName.getText().toString().trim();
 
                 // Check if all fields are filled
                 if (about.isEmpty() || experience.isEmpty() || location.isEmpty() || specialization.isEmpty()) {
@@ -82,7 +82,7 @@ public class WorkerActivity extends AppCompatActivity {
                 workerData.put("experience", experience);
                 workerData.put("location", location);
                 workerData.put("specialization", specialization);
-                workerData.put("cvName", cvName);
+               // workerData.put("cvName", cvName);
 
                 // Add the additional data to Firestore
                 db.collection("workers").document(userId)
@@ -107,7 +107,7 @@ public class WorkerActivity extends AppCompatActivity {
             }
         });
     }
-    private void openPdfFileChooser() {
+   /* private void openPdfFileChooser() {
         Intent intent = new Intent();
         intent.setType("application/pdf");
         intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -165,5 +165,5 @@ public class WorkerActivity extends AppCompatActivity {
     }
     private String getFileExtension(Uri uri) {
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(getContentResolver().getType(uri));
-    }
+    }*/
 }
