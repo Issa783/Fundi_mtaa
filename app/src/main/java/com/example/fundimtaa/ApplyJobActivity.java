@@ -45,6 +45,9 @@ public class ApplyJobActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apply_job);
+        jobId = getIntent().getStringExtra("jobId");
+        // Log the job ID received from Intent extras
+        Log.d("ApplyJobActivity", "Received Job ID: " + jobId);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
@@ -108,8 +111,6 @@ public class ApplyJobActivity extends AppCompatActivity {
     private void saveJobApplication(String name, String date, String phoneNumber, String location, String experience) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String workerId = currentUser != null ? currentUser.getUid() : null;
-        jobId = getIntent().getStringExtra("jobId");
-
         if (workerId == null) {
             Toast.makeText(ApplyJobActivity.this, "User not authenticated", Toast.LENGTH_SHORT).show();
             return;
@@ -144,6 +145,9 @@ public class ApplyJobActivity extends AppCompatActivity {
                             db.collection("job_applications")
                                     .add(application)
                                     .addOnSuccessListener(documentReference -> {
+                                        String jobId = getIntent().getStringExtra("jobId");
+                                        // Update the document with the correct jobId
+                                        documentReference.update("jobId", jobId);
                                         Toast.makeText(ApplyJobActivity.this, "Application submitted successfully", Toast.LENGTH_SHORT).show();
                                         editTextName.setText("");
                                         editTextDate.setText("");
@@ -152,8 +156,8 @@ public class ApplyJobActivity extends AppCompatActivity {
                                         editTextExperience.setText("");
 
                                         // Retrieve jobId from the newly added document
-                                        String jobId = documentReference.getId();
-                                        documentReference.update("jobId", jobId);
+                                       // String jobId = documentReference.getId();
+                                      //  documentReference.update("jobId", jobId);
                                         notifyClientAboutJobApplication(jobId); // Notify client about the job application
                                     })
                                     .addOnFailureListener(e -> {

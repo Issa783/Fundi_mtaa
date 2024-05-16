@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -182,6 +183,8 @@ public class WorkerViewJobs extends AppCompatActivity {
                 // Handle apply button click
                 // Retrieve the job ID for the selected job
                 String jobId = job.getJobId();
+                // Log the job ID before starting ApplyJobActivity
+                Log.d("WorkerViewJobs", "Job ID to be passed to ApplyJobActivity: " + jobId);
 
                 // Start ApplyJobActivity and pass the job details
                 Intent intent = new Intent(context, ApplyJobActivity.class);
