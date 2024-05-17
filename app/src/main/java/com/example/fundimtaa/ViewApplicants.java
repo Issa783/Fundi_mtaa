@@ -3,6 +3,8 @@ package com.example.fundimtaa;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
+
+import android.telecom.Call;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -21,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.common.api.Response;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -29,6 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -37,6 +41,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import io.grpc.okhttp.internal.proxy.Request;
 
 public class ViewApplicants extends AppCompatActivity {
     private boolean isJobAssigned = false;
@@ -94,6 +100,8 @@ public class ViewApplicants extends AppCompatActivity {
         recyclerViewApplicants.setAdapter(workerAdapter);
         loadWorkers();
         loadAssignedJobsFromFirestore(clientId);
+        // Retrieve assignment state
+        isJobAssigned = getAssignmentState();
     }
     private void showFilterDialog() {
         // Create dialog builder
@@ -328,8 +336,7 @@ public class ViewApplicants extends AppCompatActivity {
         return assignedWorkers != null && assignedWorkers.contains(workerId);
     }
 
-    private void assignJob(Worker worker,String jobName,String startDate,String minExperience,String location
-    ,String price,String jobDescription) {
+    private void assignJob(Worker worker, String jobName, String startDate, String minExperience, String location, String price, String jobDescription) {
         // Check if the job has already been assigned
         if (isJobAssigned) {
             Toast.makeText(ViewApplicants.this, "The job has already been assigned to a worker ", Toast.LENGTH_SHORT).show();
@@ -385,6 +392,9 @@ public class ViewApplicants extends AppCompatActivity {
                                     assignedWorkers.add(worker.getWorkerId());
                                     assignedJobsMap.put(clientId, assignedWorkers);
 
+                                    // Save the assignment state to SharedPreferences
+                                    saveAssignmentState(true);
+
                                     // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                 })
@@ -401,5 +411,45 @@ public class ViewApplicants extends AppCompatActivity {
 
         isJobAssigned = true;
     }
+    private void saveAssignmentState(boolean isAssigned) {
+        getSharedPreferences("ViewApplicantsPrefs", MODE_PRIVATE)
+                .edit()
+                .putBoolean("isJobAssigned_" + jobId, isAssigned)
+                .apply();
+    }
+
+    private boolean getAssignmentState() {
+        return getSharedPreferences("ViewApplicantsPrefs", MODE_PRIVATE)
+                .getBoolean("isJobAssigned_" + jobId, false);
+    }
+    private void notifyJobAssignment(String clientId, String workerId, String jobId) {
+        // Use an appropriate HTTP client library to send the POST request
+        // Example using OkHttpClient
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = new FormBody.Builder()
+                .add("clientId", clientId)
+                .add("workerId", workerId)
+                .add("jobId", jobId)
+                .build();
+
+        Request request = new Request.Builder()
+                .url("https://your-server-url/notify-job-assignment")
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                // Handle response
+            }
+        });
+    }
+
+
 
 }

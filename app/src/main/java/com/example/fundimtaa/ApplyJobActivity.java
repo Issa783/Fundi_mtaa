@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.telecom.Call;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Response;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -20,11 +22,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.security.auth.callback.Callback;
+
+import io.grpc.okhttp.internal.proxy.Request;
 
 public class ApplyJobActivity extends AppCompatActivity {
     // Declare messageId as a class variable
@@ -158,7 +165,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                                         // Retrieve jobId from the newly added document
                                        // String jobId = documentReference.getId();
                                       //  documentReference.update("jobId", jobId);
-                                        notifyClientAboutJobApplication(jobId); // Notify client about the job application
+
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(ApplyJobActivity.this, "Failed to submit application: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -170,54 +177,34 @@ public class ApplyJobActivity extends AppCompatActivity {
                 });
     }
 
-    private void notifyClientAboutJobApplication(String jobId) {
-        Log.d("NotifyDebug", "Attempting to notify client about job application");
+    private void notifyJobApplication(String clientId, String workerId, String jobId) {
+        // Use an appropriate HTTP client library to send the POST request
+        // Example using OkHttpClient
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = new FormBody.Builder()
+                .add("clientId", clientId)
+                .add("workerId", workerId)
+                .add("jobId", jobId)
+                .build();
 
-        // Retrieve client's FCM token based on jobId
-        db.collection("jobs").document(jobId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    Log.d("NotifyDebug", "Retrieved job document successfully");
-                    if (documentSnapshot.exists()) {
-                        String clientId = documentSnapshot.getString("clientId");
-                        if (clientId != null && !clientId.isEmpty()) {
-                            // Retrieve client's FCM token from the clients collection
-                            db.collection("clients").document(clientId)
-                                    .get()
-                                    .addOnSuccessListener(clientDocument -> {
-                                        Log.d("NotifyDebug", "Retrieved client document successfully");
-                                        if (clientDocument.exists()) {
-                                            String clientFCMToken = clientDocument.getString("deviceToken");
-                                            if (clientFCMToken != null && !clientFCMToken.isEmpty()) {
-                                                // Construct notification payload
-                                                Map<String, String> notification = new HashMap<>();
-                                                notification.put("title", "New Job Application");
-                                                notification.put("body", "A worker has applied for your job.");
+        Request request = new Request.Builder()
+                .url("https://your-server-url/notify-job-application")
+                .post(body)
+                .build();
 
-                                                // Construct message payload
-                                                Map<String, Object> message = new HashMap<>();
-                                                message.put("token", clientFCMToken);
-                                                message.put("notification", notification);
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
 
-                                                // Send notification
-                                                FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(SENDER_ID + "@gcm.googleapis.com")
-                                                        .setMessageId(Integer.toString(messageId.incrementAndGet()))
-                                                        .setData((Map<String, String>) (Map<?, ?>) message) // Explicit cast to Map<String, String>
-                                                        .build());
-                                                Log.d("NotifyDebug", "Notification sent successfully");
-                                            }
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("NotifyDebug", "Failed to retrieve client's FCM token: " + e.getMessage());
-                                    });
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("NotifyDebug", "Failed to retrieve job document: " + e.getMessage());
-                });
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                // Handle response
+            }
+        });
     }
+
 
 
 

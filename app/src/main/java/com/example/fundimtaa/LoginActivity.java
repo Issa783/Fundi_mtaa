@@ -178,10 +178,10 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<String> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
-                            String deviceToken = task.getResult();
-                            Log.d("FCMDebug", "Device token retrieved successfully: " + deviceToken);
+                            String token = task.getResult();
+                            Log.d("FCMDebug", "Device token retrieved successfully: " + token);
                             // Save the device token along with user information in the database
-                            saveDeviceToken(deviceToken);
+                            saveDeviceToken(token);
                         } else {
                             // Failed to retrieve device token
                             Log.e("FCMDebug", "Failed to get device token: " + task.getException().getMessage());
@@ -190,7 +190,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveDeviceToken(String deviceToken) {
+    private void saveDeviceToken(String token) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             // Get the user ID
@@ -198,7 +198,7 @@ public class LoginActivity extends AppCompatActivity {
 
             // Create a map to store user data including the device token
             Map<String, Object> userData = new HashMap<>();
-            userData.put("deviceToken", deviceToken);
+            userData.put("token", token);
             // Add other user data as needed
 
             // Determine the user role (client or worker) based on Firestore collections
