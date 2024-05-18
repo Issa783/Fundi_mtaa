@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.telecom.Call;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -14,24 +13,25 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Response;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.RemoteMessage;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.security.auth.callback.Callback;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
-import io.grpc.okhttp.internal.proxy.Request;
+import java.io.IOException;
 
 public class ApplyJobActivity extends AppCompatActivity {
     // Declare messageId as a class variable
@@ -162,9 +162,18 @@ public class ApplyJobActivity extends AppCompatActivity {
                                         editTextLocation.setText("");
                                         editTextExperience.setText("");
 
-                                        // Retrieve jobId from the newly added document
-                                       // String jobId = documentReference.getId();
-                                      //  documentReference.update("jobId", jobId);
+                                        // Notify the client about the job application
+                                        db.collection("jobs")
+                                                .document(jobId)
+                                                .get()
+                                                .addOnSuccessListener(jobSnapshot -> {
+                                                    if (jobSnapshot.exists()) {
+                                                        String clientId = jobSnapshot.getString("clientId");
+                                                        if (clientId != null) {
+                                                            notifyJobApplication(clientId, workerId, jobId);
+                                                        }
+                                                    }
+                                                });
 
                                     })
                                     .addOnFailureListener(e -> {
@@ -188,7 +197,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                 .build();
 
         Request request = new Request.Builder()
-                .url("https://your-server-url/notify-job-application")
+                .url("https://notify-1-wk1o.onrender.com/notify-job-application")
                 .post(body)
                 .build();
 
@@ -196,16 +205,19 @@ public class ApplyJobActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(ApplyJobActivity.this, "Notification failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                // Handle response
+                if (response.isSuccessful()) {
+                    runOnUiThread(() -> Toast.makeText(ApplyJobActivity.this, "Notification sent successfully", Toast.LENGTH_SHORT).show());
+                } else {
+                    runOnUiThread(() -> Toast.makeText(ApplyJobActivity.this, "Notification failed: " + response.message(), Toast.LENGTH_SHORT).show());
+                }
+                response.close(); // Always close the response
             }
         });
     }
-
-
-
 
 }

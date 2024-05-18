@@ -37,7 +37,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-messaging")
     implementation ("com.google.firebase:firebase-messaging:23.0.0")
     implementation ("com.google.firebase:firebase-firestore:24.0.0")
-
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
 
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth:22.3.1")

@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
 
-import android.telecom.Call;
+
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.common.api.Response;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -42,7 +41,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.grpc.okhttp.internal.proxy.Request;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import java.io.IOException;
 
 public class ViewApplicants extends AppCompatActivity {
     private boolean isJobAssigned = false;
@@ -397,6 +404,8 @@ public class ViewApplicants extends AppCompatActivity {
 
                                     // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                                    // Notify the worker about job assignment
+                                    notifyJobAssignment(worker.getWorkerId(), jobId,clientId);
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -433,7 +442,7 @@ public class ViewApplicants extends AppCompatActivity {
                 .build();
 
         Request request = new Request.Builder()
-                .url("https://your-server-url/notify-job-assignment")
+                .url("https://notify-1-wk1o.onrender.com/notify-job-assignment")
                 .post(body)
                 .build();
 
@@ -441,11 +450,17 @@ public class ViewApplicants extends AppCompatActivity {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(ViewApplicants.this, "Notification failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                // Handle response
+                if (response.isSuccessful()) {
+                    runOnUiThread(() -> Toast.makeText(ViewApplicants.this, "Notification sent successfully", Toast.LENGTH_SHORT).show());
+                } else {
+                    runOnUiThread(() -> Toast.makeText(ViewApplicants.this, "Notification failed: " + response.message(), Toast.LENGTH_SHORT).show());
+                }
+                response.close(); // Always close the response
             }
         });
     }
