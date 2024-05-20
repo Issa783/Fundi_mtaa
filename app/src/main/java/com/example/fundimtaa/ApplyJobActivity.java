@@ -189,6 +189,10 @@ public class ApplyJobActivity extends AppCompatActivity {
     private void notifyJobApplication(String clientId, String workerId, String jobId) {
         // Use an appropriate HTTP client library to send the POST request
         // Example using OkHttpClient
+         // Log the request parameters
+    Log.d("NotifyJobApplication", "clientId: " + clientId);
+    Log.d("NotifyJobApplication", "workerId: " + workerId);
+    Log.d("NotifyJobApplication", "jobId: " + jobId);
         OkHttpClient client = new OkHttpClient();
         RequestBody body = new FormBody.Builder()
                 .add("clientId", clientId)
@@ -201,23 +205,33 @@ public class ApplyJobActivity extends AppCompatActivity {
                 .post(body)
                 .build();
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(ApplyJobActivity.this, "Notification failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    runOnUiThread(() -> Toast.makeText(ApplyJobActivity.this, "Notification sent successfully", Toast.LENGTH_SHORT).show());
-                } else {
-                    runOnUiThread(() -> Toast.makeText(ApplyJobActivity.this, "Notification failed: " + response.message(), Toast.LENGTH_SHORT).show());
-                }
-                response.close(); // Always close the response
-            }
+    client.newCall(request).enqueue(new Callback() {
+    @Override
+    public void onFailure(Call call, IOException e) {
+        e.printStackTrace();
+        runOnUiThread(() -> {
+            Log.e("NotifyJobApplication", "Notification failed: " + e.getMessage());
+            Toast.makeText(ApplyJobActivity.this, "Notification failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    @Override
+    public void onResponse(Call call, Response response) throws IOException {
+        if (response.isSuccessful()) {
+            runOnUiThread(() -> {
+                Log.d("NotifyJobApplication", "Notification sent successfully");
+                Toast.makeText(ApplyJobActivity.this, "Notification sent successfully", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            runOnUiThread(() -> {
+                Log.e("NotifyJobApplication", "Notification failed: " + response.message());
+                Toast.makeText(ApplyJobActivity.this, "Notification failed: " + response.message(), Toast.LENGTH_SHORT).show();
+            });
+        }
+        response.close(); // Always close the response
+    }
+});
+
     }
 
 }
