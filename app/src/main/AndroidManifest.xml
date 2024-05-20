@@ -67,14 +67,14 @@
             android:exported="false" />
         <activity
             android:name=".NotificationActivity"
-            android:exported="false" /> <!-- Add Firebase messaging service -->
+            android:exported="false" /> 
         <service
             android:name=".MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </service> <!-- Add default notification channel ID (if using Android Oreo or higher) -->
+        </service> 
 
 
         <activity
