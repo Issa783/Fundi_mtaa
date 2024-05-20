@@ -1,4 +1,5 @@
 package com.example.fundimtaa;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +12,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class UpdateProfileActivity extends AppCompatActivity {
 
@@ -93,9 +97,19 @@ public class UpdateProfileActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String workerId = currentUser.getUid();
+
+            // Prepare updated profile data
+            Map<String, Object> updatedProfile = new HashMap<>();
+            updatedProfile.put("name", name);
+            updatedProfile.put("email", email);
+            updatedProfile.put("phoneNumber", phoneNumber);
+            updatedProfile.put("location", location);
+            updatedProfile.put("experience", experience);
+            updatedProfile.put("specialization", specialization);
+
             // Update user profile in Firestore
             db.collection("workers").document(workerId)
-                    .set(new profileWorker(name, email, phoneNumber, location, experience, specialization))
+                    .update(updatedProfile)
                     .addOnSuccessListener(aVoid -> {
                         // Profile saved successfully
                         Toast.makeText(UpdateProfileActivity.this, "Profile saved successfully", Toast.LENGTH_SHORT).show();
