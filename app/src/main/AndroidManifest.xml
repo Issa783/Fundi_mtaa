@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FundiMtaa"
+        tools:targetApi="31">
+        <activity
+            android:name=".UpdateClientProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ClientProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewClientProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewProfileWorkerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UpdateProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RatingAndReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ClientJobHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerApplicationJobHistory"
+            android:exported="false" />
+        <activity
+            android:name=".ApplicationJobHistory"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerApplicationHistory"
+            android:exported="false" />
+        <activity
+            android:name=".ItemWorkerApplicationHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewApplicants"
+            android:exported="false" />
+        <activity
+            android:name=".ApplyJobActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".ViewApplicantsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewWorkers"
+            android:exported="false" />
+        <activity
+            android:name=".NotificationActivity"
+            android:exported="false" /> 
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service> 
+
+
+        <activity
+            android:name=".JobDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".JobsDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerViewJobs"
+            android:exported="false" />
+        <activity
+            android:name=".ItemJobWorkersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SearchJob"
+            android:exported="false" />
+        <activity
+            android:name=".ItemJobActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewJobsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ClientActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PostingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity2"
+            android:exported="false" />
+        <activity
+            android:name=".PostJobActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerHomeDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ClientHomeDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ForgotPassword"
+            android:exported="false" />
+        <activity
+            android:name=".AdditionalRegistrationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity2"
+            android:exported="false" />
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CheckEmailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RegistrationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

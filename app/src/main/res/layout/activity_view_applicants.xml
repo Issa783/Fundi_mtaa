@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- Back arrow -->
+    <ImageView
+        android:id="@+id/imageViewBackArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_backarrow"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp" />
+
+    <!-- Text: Search Jobs -->
+    <TextView
+        android:id="@+id/textViewSearchJobs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search workers"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp" />
+
+
+
+        <LinearLayout
+            android:id="@+id/top_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/textViewSearchJobs"
+            android:padding="16dp">
+
+            <!-- Search field -->
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/searchView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/search_view_bg"
+                app:iconifiedByDefault="false"
+                app:queryHint="Search worker..." />
+
+            <!-- Filter icon -->
+            <ImageView
+                android:id="@+id/imageViewFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_filter"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="8dp"/>
+
+        </LinearLayout>
+
+
+
+    <!-- RecyclerView for displaying jobs -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerWorkerViewApplicants"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/top_view"
+        android:padding="16dp" />
+
+</RelativeLayout>

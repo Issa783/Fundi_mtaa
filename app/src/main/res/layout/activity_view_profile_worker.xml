@@ -1,0 +1,87 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Worker's Profile Information -->
+<androidx.cardview.widget.CardView
+    android:id="@+id/cardViewProfileInfo"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    android:elevation="4dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:padding="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Fieldset: Personal Information -->
+        <TextView
+            android:id="@+id/textViewPersonalInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Personal Information"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/textViewName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name: "
+            android:layout_below="@id/textViewPersonalInfo"
+            android:layout_marginTop="8dp"/>
+
+
+        <!-- Phone Number -->
+        <TextView
+            android:id="@+id/textViewPhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Phone Number: "
+            android:layout_below="@id/textViewName"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Location -->
+        <TextView
+            android:id="@+id/textViewLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location: "
+            android:layout_below="@id/textViewPhoneNumber"
+            android:layout_marginTop="8dp"/>
+`      <!-- Experience -->
+        <TextView
+            android:id="@+id/textViewExperience"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Experience: "
+            android:layout_below="@id/textViewLocation"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Fieldset: Ratings and Reviews -->
+        <TextView
+            android:id="@+id/textViewRatingsReviews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ratings and Reviews"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_below="@id/textViewExperience"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Dynamic layout to display ratings and reviews -->
+        <LinearLayout
+            android:id="@+id/layoutRatingsReviews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_below="@id/textViewRatingsReviews"/>
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
+</RelativeLayout>

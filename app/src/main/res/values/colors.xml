@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="client_button_clicked">#FF0000</color>
+    <color name="worker_button_unclicked">#00FF00</color>
+    <color name="worker_button_clicked">#0000FF</color>
+    <color name="client_button_unclicked">#FFFF00</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#E6DBDB</color>
+    <color name="pink">#FFE31A1A</color>
+    <color name="selectedText">#FF0000</color>
+    <color name="defaultText">#000000</color>
+    <color name="colorAccent">#FF4081</color>
+
+
+
+    <color name="my_primary">#8E24AA</color>
+    <color name="my_secondary">#9C27B0</color>
+</resources>

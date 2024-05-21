@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- Back arrow -->
+    <ImageView
+        android:id="@+id/imageViewBackArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_backarrow"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp" />
+
+    <!-- Text: Search Jobs -->
+    <TextView
+        android:id="@+id/textViewSearchJobs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search Workers"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp" />
+
+    <!-- CardView for search and filter -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardViewSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewSearchJobs"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <!-- Search field -->
+            <EditText
+                android:id="@+id/editTextSearch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Search Worker"
+                android:background="@null"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:textSize="16sp"/>
+
+            <!-- Filter icon -->
+            <ImageView
+                android:id="@+id/imageViewFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_filter"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="8dp"/>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+    <!-- RecyclerView for displaying jobs -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerWorkerViewJobs"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/cardViewSearch"
+        android:padding="16dp" />
+
+</RelativeLayout>

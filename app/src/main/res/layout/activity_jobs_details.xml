@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white">
+
+    <!-- Back arrow -->
+    <ImageView
+        android:id="@+id/imageViewBackArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_backarrow"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp" />
+
+    <!-- Text: Job Details -->
+    <TextView
+        android:id="@+id/textViewJobDetails"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Job Details"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp" />
+
+    <!-- CardView for displaying job details -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewJobDetails"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Job Name -->
+            <TextView
+                android:id="@+id/textViewJobName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Job Name: "
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <!-- Job Start Date -->
+            <TextView
+                android:id="@+id/textViewJobStartDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Start Date: "
+                android:textSize="16sp"/>
+
+            <!-- Minimum Experience -->
+            <TextView
+                android:id="@+id/textViewMinExperience"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Minimum Experience: "
+                android:textSize="16sp"/>
+
+            <!-- Location -->
+            <TextView
+                android:id="@+id/textViewLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Location: "
+                android:textSize="16sp"/>
+
+            <!-- Price -->
+            <TextView
+                android:id="@+id/textViewPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Price: "
+                android:textSize="16sp"/>
+
+            <!-- Job Description -->
+            <TextView
+                android:id="@+id/textViewJobDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description: "
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"/>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>
