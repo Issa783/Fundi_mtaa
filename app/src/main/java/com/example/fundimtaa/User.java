@@ -1,3 +1,4 @@
+package com.example.fundimtaa;
  public class User {
         private String userId;
         private String name;
@@ -67,4 +68,4 @@
             this.workerId = workerId;
         }
     }
-}
+

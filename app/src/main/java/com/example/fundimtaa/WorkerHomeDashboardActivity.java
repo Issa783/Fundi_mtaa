@@ -19,6 +19,7 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
         CardView searchJobsCard = findViewById(R.id.search_Jobs_Card);
         CardView workerhistory = findViewById(R.id.worker_history);
         CardView profileCard = findViewById(R.id.card_profile);
+        CardView notificationCard = findViewById(R.id.card_notification);
         CardView logOutCard = findViewById(R.id.card_logOut);
 
 
@@ -43,6 +44,13 @@ public class WorkerHomeDashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(WorkerHomeDashboardActivity.this, WorkerProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+        notificationCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(WorkerHomeDashboardActivity.this, NotificationActivity.class);
                 startActivity(intent);
             }
         });
