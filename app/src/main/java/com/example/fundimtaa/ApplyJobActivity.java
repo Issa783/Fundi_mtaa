@@ -30,6 +30,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 import java.io.IOException;
 
@@ -194,12 +196,9 @@ public class ApplyJobActivity extends AppCompatActivity {
     Log.d("NotifyJobApplication", "workerId: " + workerId);
     Log.d("NotifyJobApplication", "jobId: " + jobId);
         OkHttpClient client = new OkHttpClient();
-        RequestBody body = new FormBody.Builder()
-                .add("clientId", clientId)
-                .add("workerId", workerId)
-                .add("jobId", jobId)
-                .build();
-
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        String jsonBody = "{\"clientId\":\"" + clientId + "\", \"workerId\":\"" + workerId + "\", \"jobId\":\"" + jobId + "\"}";
+        RequestBody body = RequestBody.create(jsonBody, JSON);
         Request request = new Request.Builder()
                 .url("https://notify-1-wk1o.onrender.com/notify-job-application")
                 .post(body)

@@ -3,14 +3,10 @@ package com.example.fundimtaa;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
-
-
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -44,12 +39,11 @@ import java.util.Set;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import java.io.IOException;
 
 public class ViewApplicants extends AppCompatActivity {
     private boolean isJobAssigned = false;
@@ -432,15 +426,14 @@ public class ViewApplicants extends AppCompatActivity {
                 .getBoolean("isJobAssigned_" + jobId, false);
     }
     private void notifyJobAssignment(String clientId, String workerId, String jobId) {
-        // Use an appropriate HTTP client library to send the POST request
-        // Example using OkHttpClient
+        // Log the request parameters
+        Log.d("NotifyJobApplication", "clientId: " + clientId);
+        Log.d("NotifyJobApplication", "workerId: " + workerId);
+        Log.d("NotifyJobApplication", "jobId: " + jobId);
         OkHttpClient client = new OkHttpClient();
-        RequestBody body = new FormBody.Builder()
-                .add("clientId", clientId)
-                .add("workerId", workerId)
-                .add("jobId", jobId)
-                .build();
-
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        String jsonBody = "{\"clientId\":\"" + clientId + "\", \"workerId\":\"" + workerId + "\", \"jobId\":\"" + jobId + "\"}";
+        RequestBody body = RequestBody.create(jsonBody, JSON);
         Request request = new Request.Builder()
                 .url("https://notify-1-wk1o.onrender.com/notify-job-assignment")
                 .post(body)
@@ -450,19 +443,29 @@ public class ViewApplicants extends AppCompatActivity {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(ViewApplicants.this, "Notification failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    Log.e("NotifyJobApplication", "Notification failed: " + e.getMessage());
+                    Toast.makeText(ViewApplicants.this, "Notification failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    runOnUiThread(() -> Toast.makeText(ViewApplicants.this, "Notification sent successfully", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> {
+                        Log.d("NotifyJobApplication", "Notification sent successfully");
+                        Toast.makeText(ViewApplicants.this, "Notification sent successfully", Toast.LENGTH_SHORT).show();
+                    });
                 } else {
-                    runOnUiThread(() -> Toast.makeText(ViewApplicants.this, "Notification failed: " + response.message(), Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> {
+                        Log.e("NotifyJobApplication", "Notification failed: " + response.message());
+                        Toast.makeText(ViewApplicants.this, "Notification failed: " + response.message(), Toast.LENGTH_SHORT).show();
+                    });
                 }
                 response.close(); // Always close the response
             }
         });
+
     }
 
 
