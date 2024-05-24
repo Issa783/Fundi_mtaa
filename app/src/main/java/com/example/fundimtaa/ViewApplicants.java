@@ -399,7 +399,7 @@ public class ViewApplicants extends AppCompatActivity {
                                     // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                     // Notify the worker about job assignment
-                                    notifyJobAssignment(worker.getWorkerId(), jobId,clientId);
+                                    notifyJobAssignment(clientId,worker.getWorkerId(), jobId);
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();

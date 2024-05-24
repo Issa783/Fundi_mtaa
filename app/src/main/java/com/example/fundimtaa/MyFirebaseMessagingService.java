@@ -34,10 +34,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // Handle FCM messages here.
+        Log.d(TAG, "From: " + remoteMessage.getFrom());
+
+        if (remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+            // Handle data payload
+            handleDataPayload(remoteMessage.getData());
+        }
+
         if (remoteMessage.getNotification() != null) {
+            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
             sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody());
         }
+    }
+
+    private void handleDataPayload(Map<String, String> data) {
+        // Handle the data payload here
+        String title = data.get("title");
+        String messageBody = data.get("body");
+        sendNotification(title, messageBody);
     }
 
     private void saveDeviceToken(String token) {
@@ -53,20 +68,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         if (task.isSuccessful()) {
                             DocumentSnapshot clientDocument = task.getResult();
                             if (clientDocument.exists()) {
-                                mFirestore.collection("clients").document(userId)
-                                        .update(userData)
-                                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Device token saved for client"))
-                                        .addOnFailureListener(e -> Log.e(TAG, "Error saving device token for client: " + e.getMessage()));
+                                updateToken(mFirestore, "clients", userId, userData);
                             } else {
                                 mFirestore.collection("workers").document(userId).get()
                                         .addOnCompleteListener(workerTask -> {
                                             if (workerTask.isSuccessful()) {
                                                 DocumentSnapshot workerDocument = workerTask.getResult();
                                                 if (workerDocument.exists()) {
-                                                    mFirestore.collection("workers").document(userId)
-                                                            .update(userData)
-                                                            .addOnSuccessListener(aVoid -> Log.d(TAG, "Device token saved for worker"))
-                                                            .addOnFailureListener(e -> Log.e(TAG, "Error saving device token for worker: " + e.getMessage()));
+                                                    updateToken(mFirestore, "workers", userId, userData);
                                                 } else {
                                                     Log.e(TAG, "User role not found");
                                                 }
@@ -80,6 +89,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         }
                     });
         }
+    }
+
+    private void updateToken(FirebaseFirestore mFirestore, String collection, String userId, Map<String, Object> userData) {
+        mFirestore.collection(collection).document(userId)
+                .update(userData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Device token saved for " + collection))
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving device token for " + collection + ": " + e.getMessage()));
     }
 
     private void sendNotification(String title, String messageBody) {
@@ -105,12 +121,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Default Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH // Use HIGH importance for critical notifications
             );
             notificationManager.createNotificationChannel(channel);
         }
 
         notificationManager.notify(0, notificationBuilder.build());
     }
-
 }
