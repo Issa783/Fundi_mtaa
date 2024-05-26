@@ -79,7 +79,7 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
         // Query Firestore to check for unread notifications
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("workers").document(currentUserId).collection("notifications")
+        db.collection("clients").document(currentUserId).collection("notifications")
                 .whereEqualTo("read", false)
                 .get()
                 .addOnCompleteListener(task -> {
