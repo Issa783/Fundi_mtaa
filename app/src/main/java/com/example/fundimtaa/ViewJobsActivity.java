@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -69,10 +69,10 @@ public class ViewJobsActivity extends AppCompatActivity {
     private void loadJobs() {
         // Retrieve current client ID
         String clientId = getCurrentClientId(); // Implement this method to get the current client's ID
-
-        // Query Firestore to fetch jobs posted by the current client
+        // Query Firestore to fetch jobs posted by the current client, ordered by timestamp
         db.collection("jobs")
                 .whereEqualTo("clientId", clientId)
+                .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -85,7 +85,8 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId,null,jobName, jobStartDate,minExperience, location, price, jobDescription,false);
+                            Timestamp timestamp = document.getTimestamp("timestamp");
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,timestamp);
                             // Set the document ID to the Job object
                             job.setDocumentId(document.getId());
 
