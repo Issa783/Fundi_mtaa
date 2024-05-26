@@ -18,7 +18,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,22 +87,29 @@ public class WorkerViewJobs extends AppCompatActivity {
     }
 
     private void loadJobs() {
+        // Retrieve current client ID
+        // Query Firestore to fetch jobs posted by the current client, ordered by timestamp
         db.collection("jobs")
+                .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         jobList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String jobId = document.getId();
+                            String jobId = document.getId(); // Get the document ID as the jobId
                             String clientId = document.getString("clientId");
                             String jobName = document.getString("jobName");
-;                            String jobStartDate = document.getString("jobStartDate");
+                            String jobStartDate = document.getString("jobStartDate");
                             String minExperience = document.getString("minExperience");
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
-                            Job job = new Job(jobId, clientId, null,jobName,jobStartDate,
-                                    minExperience, location, price, jobDescription,false);
+                            Timestamp timestamp = document.getTimestamp("timestamp");
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,timestamp);
+                            // Set the document ID to the Job object
+                            job.setDocumentId(document.getId());
+
+                            // Add the Job object to the list
                             jobList.add(job);
                         }
                         jobAdapter.notifyDataSetChanged();
@@ -111,13 +121,19 @@ public class WorkerViewJobs extends AppCompatActivity {
 
     private void fetchJobsStartingWith(String searchText) {
         List<Job> filteredList = new ArrayList<>();
+        boolean found = false;
         for (Job job : jobList) {
             if (job.getJobName().toLowerCase().startsWith(searchText.toLowerCase())) {
                 filteredList.add(job);
+                found = true;
             }
+        }
+        if (!found) {
+            Toast.makeText(WorkerViewJobs.this, "NO RESULT FOUND", Toast.LENGTH_SHORT).show();
         }
         jobAdapter.setJobs(filteredList);
     }
+
 
     // ViewHolder for the RecyclerView
     private static class JobViewHolder extends RecyclerView.ViewHolder {
