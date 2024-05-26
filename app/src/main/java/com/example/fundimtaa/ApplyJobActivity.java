@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -36,8 +36,6 @@ import okhttp3.RequestBody;
 import java.io.IOException;
 
 public class ApplyJobActivity extends AppCompatActivity {
-    // Declare messageId as a class variable
-    private AtomicInteger messageId = new AtomicInteger(0);
 
     private EditText editTextName;
     private EditText editTextPhoneNumber;
@@ -150,6 +148,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                             application.put("experience", experience);
                             application.put("workerId", workerId);
                             application.put("jobId", jobId);
+                            application.put("timestamp", Timestamp.now()); // Add the current timestamp
 
                             db.collection("job_applications")
                                     .add(application)
@@ -189,8 +188,6 @@ public class ApplyJobActivity extends AppCompatActivity {
     }
 
     private void notifyJobApplication(String clientId, String workerId, String jobId) {
-        // Use an appropriate HTTP client library to send the POST request
-        // Example using OkHttpClient
          // Log the request parameters
     Log.d("NotifyJobApplication", "clientId: " + clientId);
     Log.d("NotifyJobApplication", "workerId: " + workerId);
