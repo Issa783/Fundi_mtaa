@@ -121,8 +121,8 @@
                 <!-- Indicator for unread notifications -->
                 <View
                     android:id="@+id/unread_indicator"
-                    android:layout_width="2dp"
-                    android:layout_height="2dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentEnd="true"
                     android:layout_marginTop="16dp"
