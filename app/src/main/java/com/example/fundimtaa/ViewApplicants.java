@@ -21,8 +21,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -174,19 +176,26 @@ public class ViewApplicants extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         workerList.clear();
+                        boolean foundResults = false; // Flag to track if results are found
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String name = document.getString("name");
 
                             // Check if the name starts with the search text (case-insensitive)
                             if (name.toLowerCase().startsWith(searchTextLowerCase)) {
+                                foundResults = true; // Set flag to true if results are found
                                 String workerId = document.getString("workerId");
                                 String phoneNumber = document.getString("phoneNumber");
                                 String location = document.getString("location");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience);
+                                Timestamp timestamp = document.getTimestamp("timestamp");
+                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience,timestamp);
                                 workerList.add(worker);
                             }
+                        }
+                        if (!foundResults) {
+                            // If no results found, display "No Result Found" message
+                            Toast.makeText(ViewApplicants.this, "No Result Found", Toast.LENGTH_SHORT).show();
                         }
                         workerAdapter.notifyDataSetChanged(); // Notify adapter that data set has changed
                     } else {
@@ -197,6 +206,7 @@ public class ViewApplicants extends AppCompatActivity {
 
     private void loadWorkers() {
         db.collection("job_applications")
+                .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
                 .whereEqualTo("jobId", jobId)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -211,7 +221,8 @@ public class ViewApplicants extends AppCompatActivity {
                                 String location = document.getString("location");
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
-                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience);
+                                Timestamp timestamp = document.getTimestamp("timestamp");
+                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience,timestamp);
                                 workerList.add(worker);
                             }
                             workerAdapter.notifyDataSetChanged();
