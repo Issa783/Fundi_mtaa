@@ -121,12 +121,11 @@
                 <!-- Indicator for unread notifications -->
                 <View
                     android:id="@+id/unread_indicator"
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:layout_alignParentTop="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginLeft="65dp"
                     android:background="@drawable/circle_red"
                     android:visibility="gone" />
 
