@@ -64,34 +64,49 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
     }
 
-    private void markNotificationAsRead(String notificationId) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
+  private void markNotificationAsRead(String notificationId) {
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    if (currentUser != null) {
+        String userId = currentUser.getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Assuming you want to differentiate between clients and workers
-            db.collection("workers").document(userId).collection("notifications")
-                    .document(notificationId)
-                    .update("read", true)
-                    .addOnSuccessListener(aVoid -> {
-                        // Optionally, update the unread count
-                        if (context instanceof ClientHomeDashboardActivity) {
-                            ((ClientHomeDashboardActivity) context).updateNotificationIndicator();
-                        }
-                    })
-                    .addOnFailureListener(e -> Log.e("NotificationAdapter", "Error marking notification as read: " + e.getMessage()));
-
-            db.collection("clients").document(userId).collection("notifications")
-                    .document(notificationId)
-                    .update("read", true)
-                    .addOnSuccessListener(aVoid -> {
-                        // Optionally, update the unread count
-                        if (context instanceof WorkerHomeDashboardActivity) {
-                            ((WorkerHomeDashboardActivity) context).updateNotificationIndicator();
-                        }
-                    })
-                    .addOnFailureListener(e -> Log.e("NotificationAdapter", "Error marking notification as read: " + e.getMessage()));
-        }
+        // Check if the user is a client
+        db.collection("clients").document(userId).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                // User is a client, update notification in the clients collection
+                db.collection("clients").document(userId).collection("notifications")
+                        .document(notificationId)
+                        .update("read", true)
+                        .addOnSuccessListener(aVoid -> {
+                            // Optionally, update the unread count
+                            if (context instanceof ClientHomeDashboardActivity) {
+                                ((ClientHomeDashboardActivity) context).updateNotificationIndicator();
+                            }
+                        })
+                        .addOnFailureListener(e -> Log.e("NotificationAdapter", "Error marking notification as read: " + e.getMessage()));
+            } else {
+                // User is not a client, check if they are a worker
+                db.collection("workers").document(userId).get().addOnSuccessListener(workerDocumentSnapshot -> {
+                    if (workerDocumentSnapshot.exists()) {
+                        // User is a worker, update notification in the workers collection
+                        db.collection("workers").document(userId).collection("notifications")
+                                .document(notificationId)
+                                .update("read", true)
+                                .addOnSuccessListener(aVoid -> {
+                                    // Optionally, update the unread count
+                                    if (context instanceof WorkerHomeDashboardActivity) {
+                                        ((WorkerHomeDashboardActivity) context).updateNotificationIndicator();
+                                    }
+                                })
+                                .addOnFailureListener(e -> Log.e("NotificationAdapter", "Error marking notification as read: " + e.getMessage()));
+                    } else {
+                        // User role not found
+                        Log.e("NotificationAdapter", "Error marking notification as read: User role not found");
+                    }
+                }).addOnFailureListener(e -> Log.e("NotificationAdapter", "Error checking worker document: " + e.getMessage()));
+            }
+        }).addOnFailureListener(e -> Log.e("NotificationAdapter", "Error checking client document: " + e.getMessage()));
     }
+}
+
 }
