@@ -28,6 +28,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
     private LinearLayout layoutRatingsReviews;
     private FirebaseAuth mAuth;
     private Button btnUpdateProfile;
+    private TextView textViewAverageRating; // TextView to display average rating
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,10 +37,10 @@ public class WorkerProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-
         // Initialize layoutRatingsReviews LinearLayout
         layoutRatingsReviews = findViewById(R.id.layoutRatingsReviews);
         btnUpdateProfile = findViewById(R.id.btnUpdateProfile);
+        textViewAverageRating = findViewById(R.id.textViewAverageRating); // Initialize the TextView
 
         // Set click listener on the button
         btnUpdateProfile.setOnClickListener(new View.OnClickListener() {
@@ -55,6 +56,10 @@ public class WorkerProfileActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String workerId = currentUser != null ? currentUser.getUid() : null;
 
+        // Variables to calculate average rating
+        final float[] totalRating = {0.0f};
+        final int[] ratingCount = {0};
+
         // Query Firestore to fetch ratings and reviews for jobs assigned to this worker
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("AssignedJobs")
@@ -69,6 +74,10 @@ public class WorkerProfileActivity extends AppCompatActivity {
                             float rating = document.getDouble("rating").floatValue();
                             Log.d(TAG, "Retrieved rating from Firestore: " + rating); // Logging statement
                             String review = document.getString("review");
+
+                            // Accumulate rating and increment count
+                            totalRating[0] += rating;
+                            ratingCount[0]++;
 
                             // Create TextViews to display job name and review
                             TextView textViewJobName = new TextView(WorkerProfileActivity.this);
@@ -89,6 +98,14 @@ public class WorkerProfileActivity extends AppCompatActivity {
                             layoutRatingsReviews.addView(textViewJobName);
                             layoutRatingsReviews.addView(ratingBar);
                             layoutRatingsReviews.addView(textViewReview);
+                        }
+
+                        // Calculate and display average rating
+                        if (ratingCount[0] > 0) {
+                            float averageRating = totalRating[0] / ratingCount[0];
+                            textViewAverageRating.setText("Average Rating: " + averageRating);
+                        } else {
+                            textViewAverageRating.setText("Average Rating: N/A");
                         }
                     } else {
                         // Handle errors
@@ -142,4 +159,3 @@ public class WorkerProfileActivity extends AppCompatActivity {
         }
     }
 }
-

@@ -24,20 +24,18 @@
         android:padding="8dp"
         android:layout_marginBottom="8dp" />
 
-        <!-- Name TextView -->
-        <TextView
-            android:id="@+id/textViewName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Name"
-            android:layout_marginBottom="12dp" />
-
         <!-- Experience TextView -->
         <TextView
             android:id="@+id/textViewExperience"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Work Experience"
+            android:layout_marginBottom="12dp" />
+        <TextView
+            android:id="@+id/textViewRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ratings"
             android:layout_marginBottom="12dp" />
 
         <!-- CLOSE TextView with background color -->

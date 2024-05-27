@@ -104,13 +104,24 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"/>
 
+            <!-- Average Rating -->
+            <TextView
+                android:id="@+id/textViewAverageRating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Average Rating: "
+                android:textSize="18sp"
+                android:layout_below="@id/textViewRatingsReviews"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"/>
+
             <!-- Dynamic layout to display ratings and reviews -->
             <LinearLayout
                 android:id="@+id/layoutRatingsReviews"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_below="@id/textViewRatingsReviews"/>
+                android:layout_below="@id/textViewAverageRating"/>
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

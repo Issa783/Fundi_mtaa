@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -46,6 +47,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 public class ViewApplicants extends AppCompatActivity {
     private boolean isJobAssigned = false;
@@ -57,7 +60,9 @@ public class ViewApplicants extends AppCompatActivity {
 
     private String jobId;
     private String clientId;
+    private String jobName;
     private Map<String, Set<String>> assignedJobsMap = new HashMap<>();
+    private ViewApplicantsViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +71,8 @@ public class ViewApplicants extends AppCompatActivity {
 
         imageViewFilter = findViewById(R.id.imageViewFilter);
         db = FirebaseFirestore.getInstance();
+        viewModel = new ViewModelProvider(this).get(ViewApplicantsViewModel.class);
+
 
         SearchView searchView = findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -91,7 +98,7 @@ public class ViewApplicants extends AppCompatActivity {
         workerList = new ArrayList<>();
         jobId = getIntent().getStringExtra("jobId");
         clientId = getIntent().getStringExtra("clientId");
-        String jobName = getIntent().getStringExtra("jobName");
+        jobName = getIntent().getStringExtra("jobName");
         String startDate = getIntent().getStringExtra("jobStartDate");
         String minExperience = getIntent().getStringExtra("minExperience");
         String location = getIntent().getStringExtra("location");
@@ -105,6 +112,15 @@ public class ViewApplicants extends AppCompatActivity {
         loadAssignedJobsFromFirestore(clientId);
         // Retrieve assignment state
         isJobAssigned = getAssignmentState();
+        // Observe data from ViewModel
+        viewModel.getWorkersLiveData().observe(this, new Observer<List<Worker>>() {
+            @Override
+            public void onChanged(List<Worker> workers) {
+                workerList.clear();
+                workerList.addAll(workers);
+                workerAdapter.notifyDataSetChanged();
+            }
+        });
     }
     private void showFilterDialog() {
         // Create dialog builder
@@ -115,47 +131,57 @@ public class ViewApplicants extends AppCompatActivity {
         AlertDialog dialog = builder.create();
 
         // Find views in the dialog layout
-        TextView textViewName = dialogView.findViewById(R.id.textViewName);
         TextView textViewExperience = dialogView.findViewById(R.id.textViewExperience);
+        TextView textViewRating = dialogView.findViewById(R.id.textViewRating); // New filter option
         TextView textViewClose = dialogView.findViewById(R.id.textViewClose);
 
-        // Set up name filter click listener
-        textViewName.setOnClickListener(v -> {
-            // Change text color to indicate selection
-            textViewName.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
-
-            // Reset other text view colors
+        // Set up rating filter click listener
+        textViewRating.setOnClickListener(v -> {
+            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
             textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            // Sort workers by name in ascending order
-            Collections.sort(workerList, (worker1, worker2) -> worker1.getName().compareTo(worker2.getName()));
-            // Notify adapter of data change
-            workerAdapter.notifyDataSetChanged();
-            dialog.dismiss(); // Dismiss the dialog after performing the action
+            // Fetch workers with ratings and reviews
+            db.collection("AssignedJobs")
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            List<Worker> ratedWorkers = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String workerId = document.getString("workerId");
+                                double rating = document.getDouble("rating");
+                                String review = document.getString("review");
+
+                                for (Worker worker : workerList) {
+                                    if (worker.getWorkerId().equals(workerId)) {
+                                        worker.setRating(rating);
+                                        worker.setReview(review);
+                                        ratedWorkers.add(worker);
+                                    }
+                                }
+                            }
+                            // Sort workers by rating in descending order
+                            Collections.sort(ratedWorkers, (worker1, worker2) -> Double.compare(worker2.getRating(), worker1.getRating()));
+                            viewModel.setWorkers(ratedWorkers);
+                        }
+                    });
+            dialog.dismiss();
         });
 
         // Set up experience filter click listener
         textViewExperience.setOnClickListener(v -> {
-            // Change text color to indicate selection
             textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            // Reset other text view colors
-            textViewName.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
-
-            // Sort workers by experience in descending order
             Collections.sort(workerList, (worker1, worker2) -> {
-                // Parse experience strings into integers
                 int experience1 = parseExperience(worker1.getExperience());
                 int experience2 = parseExperience(worker2.getExperience());
-                // Compare the parsed experience values
                 return Integer.compare(experience2, experience1);
             });
-            // Notify adapter of data change
             workerAdapter.notifyDataSetChanged();
-            dialog.dismiss(); // Dismiss the dialog after performing the action
+            dialog.dismiss();
         });
+
         textViewClose.setOnClickListener(v -> dialog.dismiss());
-        // Show dialog
         dialog.show();
     }
 
@@ -410,7 +436,7 @@ public class ViewApplicants extends AppCompatActivity {
                                     // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                     // Notify the worker about job assignment
-                                    notifyJobAssignment(clientId,worker.getWorkerId(), jobId);
+                                    notifyJobAssignment(clientId,worker.getWorkerId(), jobName);
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -440,10 +466,10 @@ public class ViewApplicants extends AppCompatActivity {
         // Log the request parameters
         Log.d("NotifyJobApplication", "clientId: " + clientId);
         Log.d("NotifyJobApplication", "workerId: " + workerId);
-        Log.d("NotifyJobApplication", "jobId: " + jobId);
+        Log.d("NotifyJobApplication", "jobName: " + jobName);
         OkHttpClient client = new OkHttpClient();
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
-        String jsonBody = "{\"clientId\":\"" + clientId + "\", \"workerId\":\"" + workerId + "\", \"jobId\":\"" + jobId + "\"}";
+        String jsonBody = "{\"clientId\":\"" + clientId + "\", \"workerId\":\"" + workerId + "\",\"jobName\":\"" + jobName + "\"}";
         RequestBody body = RequestBody.create(jsonBody, JSON);
         Request request = new Request.Builder()
                 .url("https://notify-1-wk1o.onrender.com/notify-job-assignment")

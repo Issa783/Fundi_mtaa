@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -93,7 +94,8 @@ public class PostJobActivity extends AppCompatActivity {
                 jobDetails.put("minExperience", minExperience);
                 jobDetails.put("location", location);
                 jobDetails.put("price", price);
-                jobDetails.put("clientId", clientId); // Add the client ID to the job details
+                jobDetails.put("clientId", clientId);// Add the client ID to the job details
+                jobDetails.put("timestamp", Timestamp.now());
                 // Add the job details to Firestore with a unique jobId
                 db.collection("jobs")
                         .add(jobDetails)

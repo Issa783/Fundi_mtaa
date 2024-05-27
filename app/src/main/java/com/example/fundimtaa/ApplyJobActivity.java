@@ -44,6 +44,7 @@ public class ApplyJobActivity extends AppCompatActivity {
     private EditText editTextExperience;
     private Button buttonApplyJob;
     private String jobId;
+    private String jobName;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -55,6 +56,8 @@ public class ApplyJobActivity extends AppCompatActivity {
         jobId = getIntent().getStringExtra("jobId");
         // Log the job ID received from Intent extras
         Log.d("ApplyJobActivity", "Received Job ID: " + jobId);
+        jobName = getIntent().getStringExtra("jobName");
+        Log.d("ApplyJobActivity", "Received Job Name: " + jobName);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
@@ -171,7 +174,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                                                     if (jobSnapshot.exists()) {
                                                         String clientId = jobSnapshot.getString("clientId");
                                                         if (clientId != null) {
-                                                            notifyJobApplication(clientId, workerId, jobId);
+                                                            notifyJobApplication(clientId, workerId, jobId,jobName);
                                                         }
                                                     }
                                                 });
@@ -187,14 +190,15 @@ public class ApplyJobActivity extends AppCompatActivity {
                 });
     }
 
-    private void notifyJobApplication(String clientId, String workerId, String jobId) {
+    private void notifyJobApplication(String clientId, String workerId, String jobId,String jobName) {
          // Log the request parameters
     Log.d("NotifyJobApplication", "clientId: " + clientId);
     Log.d("NotifyJobApplication", "workerId: " + workerId);
     Log.d("NotifyJobApplication", "jobId: " + jobId);
+        Log.d("NotifyJobApplication", "jobName: " + jobName);
         OkHttpClient client = new OkHttpClient();
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
-        String jsonBody = "{\"clientId\":\"" + clientId + "\", \"workerId\":\"" + workerId + "\", \"jobId\":\"" + jobId + "\"}";
+        String jsonBody = "{\"clientId\":\"" + clientId + "\", \"workerId\":\"" + workerId + "\", \"jobId\":\"" + jobId + "\",\"jobName\":\"" + jobName + "\"}";
         RequestBody body = RequestBody.create(jsonBody, JSON);
         Request request = new Request.Builder()
                 .url("https://notify-1-wk1o.onrender.com/notify-job-application")
