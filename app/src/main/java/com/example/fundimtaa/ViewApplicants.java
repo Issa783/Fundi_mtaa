@@ -68,6 +68,14 @@ public class ViewApplicants extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_applicants);
+        ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
+        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate back to the previous activity
+                onBackPressed();
+            }
+        });
 
         imageViewFilter = findViewById(R.id.imageViewFilter);
         db = FirebaseFirestore.getInstance();
@@ -123,24 +131,46 @@ public class ViewApplicants extends AppCompatActivity {
         });
     }
     private void showFilterDialog() {
-        // Create dialog builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_filter, null);
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
-        // Find views in the dialog layout
         TextView textViewExperience = dialogView.findViewById(R.id.textViewExperience);
-        TextView textViewRating = dialogView.findViewById(R.id.textViewRating); // New filter option
+        TextView textViewRating = dialogView.findViewById(R.id.textViewRating);
+        TextView textViewAvailability = dialogView.findViewById(R.id.textViewAvailability); // New filter option
         TextView textViewClose = dialogView.findViewById(R.id.textViewClose);
 
-        // Set up rating filter click listener
+        textViewAvailability.setOnClickListener(v -> {
+            textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+
+            Collections.sort(workerList, (worker1, worker2) -> Integer.compare(worker1.getAssignedJobs(), worker2.getAssignedJobs()));
+            workerAdapter.notifyDataSetChanged();
+            dialog.dismiss();
+        });
+
+        textViewExperience.setOnClickListener(v -> {
+            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+            textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+
+            Collections.sort(workerList, (worker1, worker2) -> {
+                int experience1 = parseExperience(worker1.getExperience());
+                int experience2 = parseExperience(worker2.getExperience());
+                return Integer.compare(experience2, experience1);
+            });
+            workerAdapter.notifyDataSetChanged();
+            dialog.dismiss();
+        });
+
         textViewRating.setOnClickListener(v -> {
             textViewRating.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
             textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+            textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            // Fetch workers with ratings and reviews
             db.collection("AssignedJobs")
                     .get()
                     .addOnCompleteListener(task -> {
@@ -159,7 +189,6 @@ public class ViewApplicants extends AppCompatActivity {
                                     }
                                 }
                             }
-                            // Sort workers by rating in descending order
                             Collections.sort(ratedWorkers, (worker1, worker2) -> Double.compare(worker2.getRating(), worker1.getRating()));
                             viewModel.setWorkers(ratedWorkers);
                         }
@@ -167,23 +196,10 @@ public class ViewApplicants extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        // Set up experience filter click listener
-        textViewExperience.setOnClickListener(v -> {
-            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
-            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
-
-            Collections.sort(workerList, (worker1, worker2) -> {
-                int experience1 = parseExperience(worker1.getExperience());
-                int experience2 = parseExperience(worker2.getExperience());
-                return Integer.compare(experience2, experience1);
-            });
-            workerAdapter.notifyDataSetChanged();
-            dialog.dismiss();
-        });
-
         textViewClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
+
 
     // Helper method to parse experience strings into integers
     private int parseExperience(String experience) {
@@ -248,16 +264,34 @@ public class ViewApplicants extends AppCompatActivity {
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
                                 Timestamp timestamp = document.getTimestamp("timestamp");
-                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience,timestamp);
-                                workerList.add(worker);
+                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
+
+                                // Fetch the number of assigned jobs for this worker
+                                fetchAssignedJobsCount(worker);
                             }
-                            workerAdapter.notifyDataSetChanged();
                         } else {
                             Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
+
+    private void fetchAssignedJobsCount(Worker worker) {
+        db.collection("AssignedJobs")
+                .whereEqualTo("workerId", worker.getWorkerId())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        int assignedJobsCount = task.getResult().size();
+                        worker.setAssignedJobs(assignedJobsCount);
+                        workerList.add(worker);
+                        workerAdapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(ViewApplicants.this, "Failed to fetch assigned jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
 
     private void loadAssignedJobsFromFirestore(String clientId) {
         FirebaseFirestore.getInstance().collection("AssignedJobs")
@@ -266,15 +300,19 @@ public class ViewApplicants extends AppCompatActivity {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
                         String workerId = document.getString("workerId");
-                        Set<String> assignedWorkers = assignedJobsMap.getOrDefault(clientId, new HashSet<>());
+                        String jobId = document.getString("jobId");
+                        // Create a unique key for the map
+                        String key = clientId + "_" + jobId;
+                        Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
                         assignedWorkers.add(workerId);
-                        assignedJobsMap.put(clientId, assignedWorkers);
+                        assignedJobsMap.put(key, assignedWorkers);
                     }
                 })
                 .addOnFailureListener(e -> {
                     // Handle failure
                 });
     }
+
 
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
         private List<Worker> workerList;
@@ -316,35 +354,27 @@ public class ViewApplicants extends AppCompatActivity {
             holder.textViewWorkerName.setText("Worker Name: " + worker.getName());
             holder.textViewDateOfApplication.setText("Applied on: " + worker.getDateOfApplication());
             holder.textViewExperience.setText("Experience: " + worker.getExperience());
+            holder.textViewAssignedJobs.setText("Assigned Jobs: " + worker.getAssignedJobs()); // Display assigned jobs count
 
-            // Set OnClickListener for the "View Profile" button
-            holder.buttonViewProfile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Handle view profile button click
-                    // Implement the logic to view worker's profile
-                    Intent intent = new Intent(ViewApplicants.this, ViewProfileWorkerActivity.class);
-                    intent.putExtra("workerId", worker.getWorkerId());
-                    startActivity(intent);
-                }
+            holder.buttonViewProfile.setOnClickListener(v -> {
+                Intent intent = new Intent(ViewApplicants.this, ViewProfileWorkerActivity.class);
+                intent.putExtra("workerId", worker.getWorkerId());
+                startActivity(intent);
             });
 
-            holder.buttonAssignJob.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    assignJob(
-                            workerList.get(holder.getAdapterPosition()), // Worker
-                            jobName, // Job name
-                            startDate, // Start date
-                            minExperience, // Minimum experience
-                            location, // Location
-                            price, // Price
-                            jobDescription // Job description
-                    );
-                }
+            holder.buttonAssignJob.setOnClickListener(v -> {
+                assignJob(
+                        workerList.get(holder.getAdapterPosition()), // Worker
+                        jobName, // Job name
+                        startDate, // Start date
+                        minExperience, // Minimum experience
+                        location, // Location
+                        price, // Price
+                        jobDescription // Job description
+                );
             });
-
         }
+
 
         @Override
         public int getItemCount() {
@@ -356,6 +386,7 @@ public class ViewApplicants extends AppCompatActivity {
         TextView textViewWorkerName;
         TextView textViewDateOfApplication;
         TextView textViewExperience;
+        TextView textViewAssignedJobs; // Add this field
         Button buttonAssignJob;
         Button buttonViewProfile;
 
@@ -364,15 +395,20 @@ public class ViewApplicants extends AppCompatActivity {
             textViewWorkerName = itemView.findViewById(R.id.textViewName);
             textViewDateOfApplication = itemView.findViewById(R.id.textViewDateOfApplication);
             textViewExperience = itemView.findViewById(R.id.textViewExperience);
+            textViewAssignedJobs = itemView.findViewById(R.id.textViewAssignedJobs); // Initialize this field
             buttonAssignJob = itemView.findViewById(R.id.buttonAssignJob);
-            buttonViewProfile =  itemView.findViewById(R.id.buttonViewProfile);
+            buttonViewProfile = itemView.findViewById(R.id.buttonViewProfile);
         }
     }
 
-    private boolean isJobAssignedToWorker(String clientId, String workerId) {
-        Set<String> assignedWorkers = assignedJobsMap.get(clientId);
+
+    private boolean isJobAssignedToWorker(String clientId, String jobId, String workerId) {
+        // Use a unique key based on clientId and jobId
+        String key = clientId + "_" + jobId;
+        Set<String> assignedWorkers = assignedJobsMap.get(key);
         return assignedWorkers != null && assignedWorkers.contains(workerId);
     }
+
 
     private void assignJob(Worker worker, String jobName, String startDate, String minExperience, String location, String price, String jobDescription) {
         // Check if the job has already been assigned
@@ -382,7 +418,7 @@ public class ViewApplicants extends AppCompatActivity {
         }
 
         // Check if the job is already assigned to the worker by the client
-        if (isJobAssignedToWorker(clientId, worker.getWorkerId())) {
+        if (isJobAssignedToWorker(clientId, jobId, worker.getWorkerId())) {
             Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -426,9 +462,10 @@ public class ViewApplicants extends AppCompatActivity {
                                     documentReference.update("jobId", jobId);
 
                                     // Update the assigned jobs map
-                                    Set<String> assignedWorkers = assignedJobsMap.getOrDefault(clientId, new HashSet<>());
+                                    String key = clientId + "_" + jobId;
+                                    Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
                                     assignedWorkers.add(worker.getWorkerId());
-                                    assignedJobsMap.put(clientId, assignedWorkers);
+                                    assignedJobsMap.put(key, assignedWorkers);
 
                                     // Save the assignment state to SharedPreferences
                                     saveAssignmentState(true);
@@ -436,7 +473,7 @@ public class ViewApplicants extends AppCompatActivity {
                                     // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                     // Notify the worker about job assignment
-                                    notifyJobAssignment(clientId,worker.getWorkerId(), jobName);
+                                    notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -451,6 +488,7 @@ public class ViewApplicants extends AppCompatActivity {
 
         isJobAssigned = true;
     }
+
     private void saveAssignmentState(boolean isAssigned) {
         getSharedPreferences("ViewApplicantsPrefs", MODE_PRIVATE)
                 .edit()

@@ -12,6 +12,7 @@ public class Worker {
     private Timestamp timestamp;
     private double rating; // Add rating field
     private String review; // Add review field
+    private int assignedJobs;
 
     // Constructor
     public Worker(String workerId, String name, String phoneNumber, String location, String dateOfApplication, String experience, Timestamp timestamp) {
@@ -24,6 +25,7 @@ public class Worker {
         this.timestamp = timestamp;
         this.rating = 0; // Default value
         this.review = ""; // Default value
+        this.assignedJobs = 0;
     }
 
     // Getters and setters
@@ -97,5 +99,13 @@ public class Worker {
 
     public void setReview(String review) {
         this.review = review;
+    }
+
+    public int getAssignedJobs() {
+        return assignedJobs;
+    }
+
+    public void setAssignedJobs(int assignedJobs) {
+        this.assignedJobs = assignedJobs;
     }
 }
