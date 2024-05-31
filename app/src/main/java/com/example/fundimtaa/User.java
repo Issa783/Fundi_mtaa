@@ -6,6 +6,7 @@ package com.example.fundimtaa;
         private String phoneNumber;
         private String clientId;
         private String workerId;
+        private double assignedJobsCount;
 
         public User() {
             // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -18,6 +19,7 @@ package com.example.fundimtaa;
             this.phoneNumber = phoneNumber;
             this.clientId = clientId;
             this.workerId = workerId;
+            this.assignedJobsCount = 0;
         }
 
         public String getUserId() {
@@ -67,5 +69,13 @@ package com.example.fundimtaa;
         public void setWorkerId(String workerId) {
             this.workerId = workerId;
         }
-    }
+
+     public double getAssignedJobsCount() {
+         return assignedJobsCount;
+     }
+
+     public void setAssignedJobsCount(double assignedJobsCount) {
+         this.assignedJobsCount = assignedJobsCount;
+     }
+ }
 

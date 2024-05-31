@@ -10,25 +10,29 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WorkerProfileActivity extends AppCompatActivity {
     private static final String TAG = WorkerProfileActivity.class.getSimpleName();
+    private static final int INITIAL_DISPLAY_LIMIT = 3;
 
     private LinearLayout layoutRatingsReviews;
     private FirebaseAuth mAuth;
     private Button btnUpdateProfile;
-    private TextView textViewAverageRating; // TextView to display average rating
+    private Button btnViewMore;
+    private Button btnViewLess;
+    private TextView textViewAverageRating;
+    private int currentDisplayedCount = 0;
+    private List<QueryDocumentSnapshot> jobReviewsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,125 +41,139 @@ public class WorkerProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize layoutRatingsReviews LinearLayout
         layoutRatingsReviews = findViewById(R.id.layoutRatingsReviews);
         btnUpdateProfile = findViewById(R.id.btnUpdateProfile);
-        textViewAverageRating = findViewById(R.id.textViewAverageRating); // Initialize the TextView
+        btnViewMore = findViewById(R.id.btnViewMore);
+        btnViewLess = findViewById(R.id.btnViewLess);
+        textViewAverageRating = findViewById(R.id.textViewAverageRating);
 
-        // Set click listener on the button
-        btnUpdateProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the button click
-                Intent intent = new Intent(WorkerProfileActivity.this, UpdateProfileActivity.class);
-                startActivity(intent);
-            }
+        btnUpdateProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(WorkerProfileActivity.this, UpdateProfileActivity.class);
+            startActivity(intent);
         });
 
-        // Retrieve worker's ID
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String workerId = currentUser != null ? currentUser.getUid() : null;
 
-        // Variables to calculate average rating
-        final float[] totalRating = {0.0f};
-        final int[] ratingCount = {0};
+        if (workerId != null) {
+            loadWorkerDetails(workerId);
+            loadInitialReviews(workerId);
+        }
 
-        // Query Firestore to fetch ratings and reviews for jobs assigned to this worker
+        btnViewMore.setOnClickListener(v -> loadMoreReviews());
+        btnViewLess.setOnClickListener(v -> loadInitialReviews(workerId));
+    }
+
+    private void loadWorkerDetails(String workerId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs")
-                .whereEqualTo("workerId", workerId)
-                .get()
+        db.collection("workers").document(workerId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            TextView textViewName = findViewById(R.id.textViewName);
+                            TextView textViewEmail = findViewById(R.id.textViewEmail);
+                            TextView textViewPhoneNumber = findViewById(R.id.textViewPhoneNumber);
+                            TextView textViewLocation = findViewById(R.id.textViewLocation);
+                            TextView textViewExperience = findViewById(R.id.textViewExperience);
+                            TextView textViewSpecialization = findViewById(R.id.textViewSpecialization);
+
+                            textViewName.setText("Name: " + document.getString("name"));
+                            textViewEmail.setText("Email: " + document.getString("email"));
+                            textViewPhoneNumber.setText("Phone Number: " + document.getString("phoneNumber"));
+                            textViewLocation.setText("Location: " + document.getString("location"));
+                            textViewExperience.setText("Work Experience: " + document.getString("experience"));
+                            textViewSpecialization.setText("Specialization: " + document.getString("specialization"));
+                        }
+                    } else {
+                        Toast.makeText(this, "Failed to fetch worker details.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Error fetching worker details: ", task.getException());
+                    }
+                });
+    }
+
+    private void loadInitialReviews(String workerId) {
+        layoutRatingsReviews.removeAllViews();
+        jobReviewsList.clear();
+        currentDisplayedCount = 0;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("AssignedJobs").whereEqualTo("workerId", workerId).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        float totalRating = 0;
+                        int ratingCount = 0;
+
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            // Extract job details
-                            String jobId = document.getId();
-                            String jobName = document.getString("jobName");
-                            float rating = document.getDouble("rating").floatValue();
-                            Log.d(TAG, "Retrieved rating from Firestore: " + rating); // Logging statement
-                            String review = document.getString("review");
-
-                            // Accumulate rating and increment count
-                            totalRating[0] += rating;
-                            ratingCount[0]++;
-
-                            // Create TextViews to display job name and review
-                            TextView textViewJobName = new TextView(WorkerProfileActivity.this);
-                            textViewJobName.setText("Job Name: " + jobName);
-
-                            TextView textViewReview = new TextView(WorkerProfileActivity.this);
-                            textViewReview.setText("Review: " + review);
-
-                            // Create RatingBar to display rating
-                            RatingBar ratingBar = new RatingBar(WorkerProfileActivity.this, null, android.R.attr.ratingBarStyleSmall);
-                            ratingBar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)); // Set layout parameters
-                            ratingBar.setRating(rating);
-                            ratingBar.setNumStars(5);
-                            ratingBar.setStepSize(1.0f);
-                            ratingBar.setIsIndicator(true);
-
-                            // Add views to layoutRatingsReviews LinearLayout
-                            layoutRatingsReviews.addView(textViewJobName);
-                            layoutRatingsReviews.addView(ratingBar);
-                            layoutRatingsReviews.addView(textViewReview);
+                            jobReviewsList.add(document);
+                            if (currentDisplayedCount < INITIAL_DISPLAY_LIMIT) {
+                                addReviewToLayout(document);
+                                currentDisplayedCount++;
+                            }
+                            totalRating += document.getDouble("rating").floatValue();
+                            ratingCount++;
                         }
 
-                        // Calculate and display average rating
-                        if (ratingCount[0] > 0) {
-                            float averageRating = totalRating[0] / ratingCount[0];
-                            textViewAverageRating.setText("Average Rating: " + averageRating);
+                        updateButtonsVisibility();
+
+                        if (ratingCount > 0) {
+                            textViewAverageRating.setText("Average Rating: " + (totalRating / ratingCount));
                         } else {
                             textViewAverageRating.setText("Average Rating: N/A");
                         }
                     } else {
-                        // Handle errors
-                        Toast.makeText(WorkerProfileActivity.this, "Failed to fetch job ratings and reviews.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Failed to fetch job ratings and reviews.", Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "Error fetching job ratings and reviews: ", task.getException());
                     }
                 });
+    }
 
-        // Retrieve and display worker's details from the Firestore "Workers" collection
-        if (workerId != null) {
-            db.collection("workers")
-                    .document(workerId)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                // Extract worker details
-                                String name = document.getString("name");
-                                String email = document.getString("email");
-                                String phoneNumber = document.getString("phoneNumber");
-                                String location = document.getString("location");
-                                String experience = document.getString("experience");
-                                String specialization = document.getString("specialization");
+    private void loadMoreReviews() {
+        layoutRatingsReviews.removeAllViews();
+        currentDisplayedCount = 0;
 
-                                // Update TextViews with worker's details
-                                TextView textViewName = findViewById(R.id.textViewName);
-                                textViewName.setText("Name: " + name);
+        for (QueryDocumentSnapshot document : jobReviewsList) {
+            addReviewToLayout(document);
+            currentDisplayedCount++;
+        }
 
-                                TextView textViewEmail = findViewById(R.id.textViewEmail);
-                                textViewEmail.setText("Email: " + email);
+        updateButtonsVisibility();
+    }
 
-                                TextView textViewPhoneNumber = findViewById(R.id.textViewPhoneNumber);
-                                textViewPhoneNumber.setText("Phone Number: " + phoneNumber);
+    private void addReviewToLayout(QueryDocumentSnapshot document) {
+        String jobName = document.getString("jobName");
+        float rating = document.getDouble("rating").floatValue();
+        String review = document.getString("review");
 
-                                TextView textViewLocation = findViewById(R.id.textViewLocation);
-                                textViewLocation.setText("Location: " + location);
+        TextView textViewJobName = new TextView(this);
+        textViewJobName.setText("Job Name: " + jobName);
 
-                                TextView textViewExperience = findViewById(R.id.textViewExperience);
-                                textViewExperience.setText("Work Experience: " + experience);
+        TextView textViewReview = new TextView(this);
+        textViewReview.setText("Review: " + review);
 
-                                TextView textViewSpecialization = findViewById(R.id.textViewSpecialization);
-                                textViewSpecialization.setText("Specialization: " + specialization);
-                            }
-                        } else {
-                            // Handle errors
-                            Toast.makeText(WorkerProfileActivity.this, "Failed to fetch worker details.", Toast.LENGTH_SHORT).show();
-                            Log.e(TAG, "Error fetching worker details: ", task.getException());
-                        }
-                    });
+        RatingBar ratingBar = new RatingBar(this, null, android.R.attr.ratingBarStyleSmall);
+        ratingBar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        ratingBar.setRating(rating);
+        ratingBar.setNumStars(5);
+        ratingBar.setStepSize(1.0f);
+        ratingBar.setIsIndicator(true);
+
+        layoutRatingsReviews.addView(textViewJobName);
+        layoutRatingsReviews.addView(ratingBar);
+        layoutRatingsReviews.addView(textViewReview);
+    }
+
+    private void updateButtonsVisibility() {
+        if (currentDisplayedCount >= jobReviewsList.size()) {
+            btnViewMore.setVisibility(View.GONE);
+        } else {
+            btnViewMore.setVisibility(View.VISIBLE);
+        }
+
+        if (currentDisplayedCount > INITIAL_DISPLAY_LIMIT) {
+            btnViewLess.setVisibility(View.VISIBLE);
+        } else {
+            btnViewLess.setVisibility(View.GONE);
         }
     }
 }

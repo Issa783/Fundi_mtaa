@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
@@ -14,31 +15,35 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ViewProfileWorkerActivity extends AppCompatActivity {
     private static final String TAG = ViewProfileWorkerActivity.class.getSimpleName();
     private static final int INITIAL_DISPLAY_LIMIT = 3;
 
     private LinearLayout layoutRatingsReviews;
     private FirebaseAuth mAuth;
-    private int currentDisplayedCount = 0; // To track the number of reviews displayed
-    private float totalRating = 0; // To calculate the total rating
-    private int ratingCount = 0; // To count the number of ratings
-    private Button btnViewMore; // Button to load more reviews
-    private Button btnViewLess; // Button to return to initial view
-    private int maxDisplayedCount = INITIAL_DISPLAY_LIMIT; // Maximum number of reviews to display initially
-    private TextView textViewAverageRating; // TextView for displaying average rating
+    private int currentDisplayedCount = 0;
+    private float totalRating = 0;
+    private int ratingCount = 0;
+    private Button btnViewMore;
+    private Button btnViewLess;
+    private TextView textViewAverageRating;
+    private List<QueryDocumentSnapshot> jobReviewsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_profile_worker);
+
         mAuth = FirebaseAuth.getInstance();
         String workerId = getIntent().getStringExtra("workerId");
 
         layoutRatingsReviews = findViewById(R.id.layoutRatingsReviews);
-        btnViewMore = new Button(this);
-        btnViewMore.setText("View More");
-        textViewAverageRating = findViewById(R.id.textViewAverageRating); // Initialize TextView
+        btnViewMore = findViewById(R.id.btnViewMore);
+        btnViewLess = findViewById(R.id.btnViewLess);
+        textViewAverageRating = findViewById(R.id.textViewAverageRating);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("AssignedJobs")
@@ -46,27 +51,20 @@ public class ViewProfileWorkerActivity extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        int displayedCount = 0; // Track the number of displayed reviews
+                        int displayedCount = 0;
 
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            jobReviewsList.add(document);
                             if (displayedCount < INITIAL_DISPLAY_LIMIT) {
-                                addReviewToLayout(document);
+                                addJobToLayout(document);
                                 displayedCount++;
                             }
-
-                            // Calculate total rating for average
                             totalRating += document.getDouble("rating").floatValue();
                             ratingCount++;
                         }
 
                         currentDisplayedCount = displayedCount;
-
-                        // Add "View More" button if there are more reviews
-                        if (task.getResult().size() > INITIAL_DISPLAY_LIMIT) {
-                            layoutRatingsReviews.addView(btnViewMore);
-                        }
-
-                        // Calculate and display the average rating
+                        updateButtonsVisibility();
                         displayAverageRating();
                     } else {
                         Toast.makeText(ViewProfileWorkerActivity.this, "Failed to fetch job ratings and reviews.", Toast.LENGTH_SHORT).show();
@@ -74,9 +72,9 @@ public class ViewProfileWorkerActivity extends AppCompatActivity {
                     }
                 });
 
-        btnViewMore.setOnClickListener(view -> loadMoreReviews(workerId));
+        btnViewMore.setOnClickListener(view -> loadMoreReviews());
+        btnViewLess.setOnClickListener(view -> loadInitialReviews());
 
-        // Retrieve worker's details from the job_applications collection
         db.collection("job_applications")
                 .whereEqualTo("workerId", workerId)
                 .get()
@@ -107,7 +105,30 @@ public class ViewProfileWorkerActivity extends AppCompatActivity {
                 });
     }
 
-    private void addReviewToLayout(QueryDocumentSnapshot document) {
+    private void loadInitialReviews() {
+        layoutRatingsReviews.removeAllViews();
+        currentDisplayedCount = 0;
+
+        for (int i = 0; i < jobReviewsList.size() && i < INITIAL_DISPLAY_LIMIT; i++) {
+            addJobToLayout(jobReviewsList.get(i));
+            currentDisplayedCount++;
+        }
+
+        updateButtonsVisibility();
+    }
+
+    private void loadMoreReviews() {
+        layoutRatingsReviews.removeAllViews();
+
+        for (QueryDocumentSnapshot document : jobReviewsList) {
+            addJobToLayout(document);
+        }
+
+        currentDisplayedCount = jobReviewsList.size();
+        updateButtonsVisibility();
+    }
+
+    private void addJobToLayout(QueryDocumentSnapshot document) {
         String jobName = document.getString("jobName");
         float rating = document.getDouble("rating").floatValue();
         String review = document.getString("review");
@@ -130,38 +151,19 @@ public class ViewProfileWorkerActivity extends AppCompatActivity {
         layoutRatingsReviews.addView(textViewReview);
     }
 
-    private void loadMoreReviews(String workerId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs")
-                .whereEqualTo("workerId", workerId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        int displayedCount = 0;
+    private void updateButtonsVisibility() {
+        if (currentDisplayedCount >= jobReviewsList.size()) {
+            btnViewMore.setVisibility(View.GONE);
+        } else {
+            btnViewMore.setVisibility(View.VISIBLE);
+        }
 
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            if (displayedCount >= currentDisplayedCount && displayedCount < currentDisplayedCount + INITIAL_DISPLAY_LIMIT) {
-                                addReviewToLayout(document);
-                                displayedCount++;
-                            }
-                        }
-
-                        currentDisplayedCount += INITIAL_DISPLAY_LIMIT;
-
-                        // Add "View More" button if there are more reviews
-                        if (currentDisplayedCount < task.getResult().size()) {
-                            layoutRatingsReviews.addView(btnViewMore);
-                        } else {
-                            // If all reviews are displayed, remove the button
-                            layoutRatingsReviews.removeView(btnViewMore);
-                        }
-                    } else {
-                        Toast.makeText(ViewProfileWorkerActivity.this, "Failed to fetch more reviews.", Toast.LENGTH_SHORT).show();
-                        Log.e(TAG, "Error fetching more reviews: ", task.getException());
-                    }
-                });
+        if (currentDisplayedCount > INITIAL_DISPLAY_LIMIT) {
+            btnViewLess.setVisibility(View.VISIBLE);
+        } else {
+            btnViewLess.setVisibility(View.GONE);
+        }
     }
-
 
     private void displayAverageRating() {
         if (ratingCount > 0) {

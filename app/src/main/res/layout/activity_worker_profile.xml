@@ -135,4 +135,24 @@
         android:layout_below="@id/cardViewProfileInfo"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"/>
+    <!-- Button: View More -->
+    <Button
+        android:id="@+id/btnViewMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View More"
+        android:layout_below="@id/btnUpdateProfile"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Button: View Less -->
+    <Button
+        android:id="@+id/btnViewLess"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Less"
+        android:layout_below="@id/btnUpdateProfile"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"/>
 </RelativeLayout>

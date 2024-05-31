@@ -74,6 +74,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                     completedJobsList.add(job);
                     // Notify the adapter of data change
                     completedJobAdapter.notifyDataSetChanged();
+                    markJobAsDone(job);
                 })
                 .addOnFailureListener(e -> {
                     // Handle errors while updating job status
@@ -185,6 +186,55 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
             Toast.makeText(WorkerApplicationJobHistory.this, "No user signed in", Toast.LENGTH_SHORT).show();
         }
     }
+    private void markJobAsDone(Job job) {
+        // Get the current user
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        // Check if the current user is not null
+        if (currentUser != null) {
+            String workerId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("AssignedJobs").document(job.getJobId())
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        // Remove the job from the list and notify the adapter
+                        pendingJobsList.remove(job);
+                        pendingJobAdapter.notifyDataSetChanged();
+
+                        // Update the worker's assigned jobs count
+                        db.collection("workers").document(workerId)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    if (documentSnapshot.exists()) {
+                                        long assignedJobsCount = documentSnapshot.getLong("assignedJobsCount");
+                                        db.collection("workers").document(workerId)
+                                                .update("assignedJobsCount", assignedJobsCount - 1)
+                                                .addOnSuccessListener(aVoid1 -> {
+                                                    // Job marked as done and worker's assigned jobs count updated
+                                                    Toast.makeText(WorkerApplicationJobHistory.this, "Job marked as done", Toast.LENGTH_SHORT).show();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    // Handle errors while updating worker's assigned jobs count
+                                                    Toast.makeText(WorkerApplicationJobHistory.this, "Failed to update worker's assigned jobs count: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                });
+                                    } else {
+                                        // Handle case where worker document does not exist
+                                        Toast.makeText(WorkerApplicationJobHistory.this, "Worker document does not exist", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    // Handle errors while retrieving worker document
+                                    Toast.makeText(WorkerApplicationJobHistory.this, "Failed to retrieve worker document: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        // Handle errors while deleting job document
+                        Toast.makeText(WorkerApplicationJobHistory.this, "Failed to mark job as done: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // If currentUser is null, handle the case where the user is not signed in
+            Toast.makeText(WorkerApplicationJobHistory.this, "No user signed in", Toast.LENGTH_SHORT).show();
+        }
+    }
 
 
     // Adapter for displaying jobs in RecyclerView
@@ -248,6 +298,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                 buttonMarkAsDone.setOnClickListener(v -> {
                     String documentId = job.getDocumentId();
                     updateJobStatus(job, documentId);
+
                 });
 
                 // Set OnClickListener for "View Job Details" button
@@ -272,9 +323,3 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
         }
     }
 }
-
-
-
-
-
-

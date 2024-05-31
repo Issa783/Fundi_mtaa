@@ -14,6 +14,7 @@ public class Job {
     private String jobDescription;
     private boolean isCompleted;
     private Timestamp timestamp;
+    private String workerId;
 
     // Default constructor required by Firestore
     public Job() {
@@ -22,7 +23,7 @@ public class Job {
 
     public Job(String jobId, String clientId, String documentId, String jobName,
                String jobStartDate, String minExperience,
-               String location, String price, String jobDescription, boolean isCompleted, Timestamp timestamp) {
+               String location, String price, String jobDescription, boolean isCompleted, Timestamp timestamp,String workerId) {
         this.jobId = jobId;
         this.clientId = clientId;
         this.documentId = documentId;
@@ -34,6 +35,7 @@ public class Job {
         this.jobDescription = jobDescription;
         this.isCompleted = isCompleted;
         this.timestamp = timestamp;
+        this.workerId = workerId;
     }
 
     // Getter methods
@@ -111,5 +113,13 @@ public class Job {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getWorkerId() {
+        return workerId;
+    }
+
+    public void setWorkerId(String workerId) {
+        this.workerId = workerId;
     }
 }

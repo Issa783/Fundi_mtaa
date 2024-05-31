@@ -86,7 +86,8 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
                             Timestamp timestamp = document.getTimestamp("timestamp");
-                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,timestamp);
+                            String workerId = document.getString("workerId");
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,timestamp,workerId);
                             // Set the document ID to the Job object
                             job.setDocumentId(document.getId());
 

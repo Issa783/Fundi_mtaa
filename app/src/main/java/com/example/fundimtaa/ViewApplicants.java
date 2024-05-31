@@ -23,8 +23,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -472,8 +474,13 @@ public class ViewApplicants extends AppCompatActivity {
 
                                     // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                                    worker.setAssignedJobs(worker.getAssignedJobs() + 1);
+                                    workerAdapter.notifyDataSetChanged();
                                     // Notify the worker about job assignment
                                     notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
+                                    // Update Firestore with the new assigned jobs count
+                                    db.collection("workers").document(worker.getWorkerId())
+                                            .update("assignedJobsCount", worker.getAssignedJobs());
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
