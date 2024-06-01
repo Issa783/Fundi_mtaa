@@ -20,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -102,6 +103,7 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("AssignedJobs")
                     .whereEqualTo("clientId", clientId)
+                    .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {

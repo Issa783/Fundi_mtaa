@@ -1,6 +1,9 @@
 package com.example.fundimtaa;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
 import android.util.Log;
@@ -53,6 +56,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 public class ViewApplicants extends AppCompatActivity {
+
     private boolean isJobAssigned = false;
     private RecyclerView recyclerViewApplicants;
     private WorkerAdapter workerAdapter;
@@ -65,11 +69,13 @@ public class ViewApplicants extends AppCompatActivity {
     private String jobName;
     private Map<String, Set<String>> assignedJobsMap = new HashMap<>();
     private ViewApplicantsViewModel viewModel;
+    private BroadcastReceiver updateAssignedJobsCountReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_applicants);
+
         ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
         imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,7 +122,10 @@ public class ViewApplicants extends AppCompatActivity {
         String jobDescription = getIntent().getStringExtra("jobDescription");
         String documentId = getIntent().getStringExtra("documentId");
 // Initialize adapter
+        // Inside your onCreate method
+
         workerAdapter = new WorkerAdapter(workerList, jobId, jobName, startDate, minExperience, location, price, jobDescription, clientId, documentId);
+
         recyclerViewApplicants.setAdapter(workerAdapter);
         loadWorkers();
         loadAssignedJobsFromFirestore(clientId);
@@ -342,6 +351,7 @@ public class ViewApplicants extends AppCompatActivity {
             this.jobDescription = jobDescription;
             this.clientId = clientId;
             this.documentId = documentId;
+           // this.textViewAssignedJobs = textViewAssignedJobs;
         }
 
         @Override
@@ -410,19 +420,17 @@ public class ViewApplicants extends AppCompatActivity {
         Set<String> assignedWorkers = assignedJobsMap.get(key);
         return assignedWorkers != null && assignedWorkers.contains(workerId);
     }
-
-
+   // private Set<String> assignedWorkers = new HashSet<>(); // Define a set to store assigned worker IDs
     private void assignJob(Worker worker, String jobName, String startDate, String minExperience, String location, String price, String jobDescription) {
         // Check if the job has already been assigned
-        if (isJobAssigned) {
+       if (isJobAssigned) {
             Toast.makeText(ViewApplicants.this, "The job has already been assigned to a worker ", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
+          return;
+       }
         // Check if the job is already assigned to the worker by the client
         if (isJobAssignedToWorker(clientId, jobId, worker.getWorkerId())) {
             Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
-            return;
+           return;
         }
 
         // Retrieve client details
@@ -452,7 +460,7 @@ public class ViewApplicants extends AppCompatActivity {
                         assignedJob.put("jobDescription", jobDescription);
                         assignedJob.put("rating", 0); // Initialize the rating with a default value, e.g., 0
                         assignedJob.put("review", "");
-                        assignedJob.put("assignedDate", new Date()); // Use current date/time as assigned date
+                        assignedJob.put("timestamp", Timestamp.now()); // Use current date/time as assigned date
 
                         FirebaseFirestore.getInstance().collection("AssignedJobs")
                                 .add(assignedJob)
@@ -468,6 +476,9 @@ public class ViewApplicants extends AppCompatActivity {
                                     Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
                                     assignedWorkers.add(worker.getWorkerId());
                                     assignedJobsMap.put(key, assignedWorkers);
+                                    // Add the worker ID to the set of assigned workers
+                                   // assignedWorkers.add(worker.getWorkerId());
+
 
                                     // Save the assignment state to SharedPreferences
                                     saveAssignmentState(true);
@@ -476,11 +487,13 @@ public class ViewApplicants extends AppCompatActivity {
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                     worker.setAssignedJobs(worker.getAssignedJobs() + 1);
                                     workerAdapter.notifyDataSetChanged();
+
+                                    // Update Firestore with the new assigned jobs count
+                                    updateAssignedJobsCount(worker);
+
                                     // Notify the worker about job assignment
                                     notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
-                                    // Update Firestore with the new assigned jobs count
-                                    db.collection("workers").document(worker.getWorkerId())
-                                            .update("assignedJobsCount", worker.getAssignedJobs());
+
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -495,6 +508,43 @@ public class ViewApplicants extends AppCompatActivity {
 
         isJobAssigned = true;
     }
+
+    /*private void updateAssignedJobsCount(Worker worker) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference assignedJobsCountRef = db.collection("AssignedJobsCount").document(worker.getWorkerId());
+
+        assignedJobsCountRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    // Document exists, update the count
+                    long currentCount = document.getLong("count");
+                    assignedJobsCountRef.update("count", currentCount + 1)
+                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "AssignedJobsCount updated successfully"))
+                            .addOnFailureListener(e -> Log.e("Firestore", "Error updating AssignedJobsCount", e));
+                } else {
+                    // Document does not exist, create it with count = 1
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("count", 1);
+                    assignedJobsCountRef.set(data)
+                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "AssignedJobsCount created successfully"))
+                            .addOnFailureListener(e -> Log.e("Firestore", "Error creating AssignedJobsCount", e));
+                }*/
+    private void updateAssignedJobsCount(Worker worker) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Use workerId as the document ID
+        DocumentReference assignedJobsCountRef = db.collection("AssignedJobsCount").document(worker.getWorkerId());
+
+        // Create a map with both count and workerId fields
+        Map<String, Object> data = new HashMap<>();
+        data.put("count", 0); // Initialize count to 0
+        data.put("workerId", worker.getWorkerId());
+
+        assignedJobsCountRef.set(data) // Set the data, this will create the document if it doesn't exist
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "AssignedJobsCount updated successfully"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Error updating AssignedJobsCount", e));
+    }
+
 
     private void saveAssignmentState(boolean isAssigned) {
         getSharedPreferences("ViewApplicantsPrefs", MODE_PRIVATE)
@@ -549,7 +599,4 @@ public class ViewApplicants extends AppCompatActivity {
         });
 
     }
-
-
-
 }

@@ -51,7 +51,7 @@
                     android:id="@+id/buttonViewWorkers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="View Workers" />
+                    android:text="View Applicants" />
 
                 <!-- Button for Rating and Review -->
                 <Button
