@@ -98,7 +98,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
         currentDisplayedCount = 0;
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs").whereEqualTo("workerId", workerId).get()
+        db.collection("ClientJobsDetail").whereEqualTo("workerId", workerId).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         float totalRating = 0;

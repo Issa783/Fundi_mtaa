@@ -137,6 +137,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("AssignedJobs")
                     .whereEqualTo("workerId", workerId)
+                    .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {

@@ -60,14 +60,16 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
         loadAssignedJobsForClient();
     }
     private void retrieveJobDetails(String jobId) {
+        Log.d(TAG, "Retrieving details for job ID: " + jobId); // Log the job ID
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs").document(jobId)
+        db.collection("ClientJobsDetail").document(jobId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         // Job document exists, retrieve additional details
                         Job job = documentSnapshot.toObject(Job.class);
                         if (job != null) {
+                            Log.d(TAG, "Job details retrieved successfully: " + job.getJobName()); // Log successful retrieval
                             // Pass job details to the JobDetailsActivity
                             Intent intent = new Intent(ClientJobHistoryActivity.this, JobDetailsActivity.class);
                             intent.putExtra("jobName", job.getJobName());
@@ -101,7 +103,7 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
 
             // Query Firestore to fetch assigned jobs for the client
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("AssignedJobs")
+            db.collection("ClientJobsDetail")
                     .whereEqualTo("clientId", clientId)
                     .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
                     .get()

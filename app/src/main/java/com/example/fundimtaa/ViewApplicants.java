@@ -182,7 +182,7 @@ public class ViewApplicants extends AppCompatActivity {
             textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
             textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            db.collection("AssignedJobs")
+            db.collection("ClientJobsDetail")
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
@@ -351,7 +351,6 @@ public class ViewApplicants extends AppCompatActivity {
             this.jobDescription = jobDescription;
             this.clientId = clientId;
             this.documentId = documentId;
-           // this.textViewAssignedJobs = textViewAssignedJobs;
         }
 
         @Override
@@ -420,20 +419,12 @@ public class ViewApplicants extends AppCompatActivity {
         Set<String> assignedWorkers = assignedJobsMap.get(key);
         return assignedWorkers != null && assignedWorkers.contains(workerId);
     }
-   // private Set<String> assignedWorkers = new HashSet<>(); // Define a set to store assigned worker IDs
     private void assignJob(Worker worker, String jobName, String startDate, String minExperience, String location, String price, String jobDescription) {
-        // Check if the job has already been assigned
-       if (isJobAssigned) {
-            Toast.makeText(ViewApplicants.this, "The job has already been assigned to a worker ", Toast.LENGTH_SHORT).show();
-          return;
-       }
-        // Check if the job is already assigned to the worker by the client
         if (isJobAssignedToWorker(clientId, jobId, worker.getWorkerId())) {
             Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
-           return;
+            return;
         }
 
-        // Retrieve client details
         FirebaseFirestore.getInstance().collection("clients").document(clientId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -442,7 +433,6 @@ public class ViewApplicants extends AppCompatActivity {
                         String clientLocation = documentSnapshot.getString("location");
                         String clientEmail = documentSnapshot.getString("email");
 
-                        // Store assigned job details in Firestore
                         Map<String, Object> assignedJob = new HashMap<>();
                         assignedJob.put("clientId", clientId);
                         assignedJob.put("clientName", clientName);
@@ -458,42 +448,39 @@ public class ViewApplicants extends AppCompatActivity {
                         assignedJob.put("location", location);
                         assignedJob.put("price", price);
                         assignedJob.put("jobDescription", jobDescription);
-                        assignedJob.put("rating", 0); // Initialize the rating with a default value, e.g., 0
+                        assignedJob.put("rating", 0);
                         assignedJob.put("review", "");
-                        assignedJob.put("timestamp", Timestamp.now()); // Use current date/time as assigned date
+                        assignedJob.put("timestamp", Timestamp.now());
+
+                        // Use the job ID as the document ID for both collections
+                        String documentId = jobId; // Use jobId as the document ID
 
                         FirebaseFirestore.getInstance().collection("AssignedJobs")
-                                .add(assignedJob)
+                                .document(documentId) // Set document ID
+                                .set(assignedJob)
                                 .addOnSuccessListener(documentReference -> {
-                                    // Retrieve the generated document ID
-                                    String jobId = documentReference.getId();
+                                    Log.d("AssignedJobs", "Assigned job ID: " + documentId);
 
-                                    // Update the job document with the jobId
-                                    documentReference.update("jobId", jobId);
-
-                                    // Update the assigned jobs map
                                     String key = clientId + "_" + jobId;
                                     Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
                                     assignedWorkers.add(worker.getWorkerId());
                                     assignedJobsMap.put(key, assignedWorkers);
-                                    // Add the worker ID to the set of assigned workers
-                                   // assignedWorkers.add(worker.getWorkerId());
 
-
-                                    // Save the assignment state to SharedPreferences
                                     saveAssignmentState(true);
-
-                                    // Notify the client about successful assignment
                                     Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
                                     worker.setAssignedJobs(worker.getAssignedJobs() + 1);
                                     workerAdapter.notifyDataSetChanged();
-
-                                    // Update Firestore with the new assigned jobs count
-                                    updateAssignedJobsCount(worker);
-
-                                    // Notify the worker about job assignment
                                     notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
 
+                                    FirebaseFirestore.getInstance().collection("ClientJobsDetail")
+                                            .document(documentId) // Set document ID
+                                            .set(assignedJob)
+                                            .addOnSuccessListener(clientJobsDetailRef -> {
+                                                Log.d("ClientJobsDetail", "Job details stored in ClientJobsDetail successfully");
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e("ClientJobsDetail", "Failed to store job details in ClientJobsDetail: " + e.getMessage());
+                                            });
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -505,46 +492,7 @@ public class ViewApplicants extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(ViewApplicants.this, "Error fetching client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-
-        isJobAssigned = true;
     }
-
-    /*private void updateAssignedJobsCount(Worker worker) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference assignedJobsCountRef = db.collection("AssignedJobsCount").document(worker.getWorkerId());
-
-        assignedJobsCountRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
-                    // Document exists, update the count
-                    long currentCount = document.getLong("count");
-                    assignedJobsCountRef.update("count", currentCount + 1)
-                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "AssignedJobsCount updated successfully"))
-                            .addOnFailureListener(e -> Log.e("Firestore", "Error updating AssignedJobsCount", e));
-                } else {
-                    // Document does not exist, create it with count = 1
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("count", 1);
-                    assignedJobsCountRef.set(data)
-                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "AssignedJobsCount created successfully"))
-                            .addOnFailureListener(e -> Log.e("Firestore", "Error creating AssignedJobsCount", e));
-                }*/
-    private void updateAssignedJobsCount(Worker worker) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        // Use workerId as the document ID
-        DocumentReference assignedJobsCountRef = db.collection("AssignedJobsCount").document(worker.getWorkerId());
-
-        // Create a map with both count and workerId fields
-        Map<String, Object> data = new HashMap<>();
-        data.put("count", 0); // Initialize count to 0
-        data.put("workerId", worker.getWorkerId());
-
-        assignedJobsCountRef.set(data) // Set the data, this will create the document if it doesn't exist
-                .addOnSuccessListener(aVoid -> Log.d("Firestore", "AssignedJobsCount updated successfully"))
-                .addOnFailureListener(e -> Log.e("Firestore", "Error updating AssignedJobsCount", e));
-    }
-
 
     private void saveAssignmentState(boolean isAssigned) {
         getSharedPreferences("ViewApplicantsPrefs", MODE_PRIVATE)

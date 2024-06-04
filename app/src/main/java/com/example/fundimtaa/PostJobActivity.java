@@ -106,7 +106,7 @@ public class PostJobActivity extends AppCompatActivity {
                                 String jobId = documentReference.getId(); // Retrieve the generated document ID
 
                                 // Update the job document with the jobId
-                                documentReference.update("jobId", jobId)
+                               documentReference.update("jobId", jobId)
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {

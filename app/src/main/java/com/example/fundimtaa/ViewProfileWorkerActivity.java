@@ -46,7 +46,7 @@ public class ViewProfileWorkerActivity extends AppCompatActivity {
         textViewAverageRating = findViewById(R.id.textViewAverageRating);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs")
+        db.collection("ClientJobsDetail")
                 .whereEqualTo("workerId", workerId)
                 .get()
                 .addOnCompleteListener(task -> {
