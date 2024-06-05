@@ -182,7 +182,7 @@ public class ViewApplicants extends AppCompatActivity {
             textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
             textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            db.collection("ClientJobsDetail")
+            db.collection("RatingsAndReviews")
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
@@ -420,79 +420,108 @@ public class ViewApplicants extends AppCompatActivity {
         return assignedWorkers != null && assignedWorkers.contains(workerId);
     }
     private void assignJob(Worker worker, String jobName, String startDate, String minExperience, String location, String price, String jobDescription) {
-        if (isJobAssignedToWorker(clientId, jobId, worker.getWorkerId())) {
-            Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // First, check if the job is already assigned to this worker in Firestore
+        db.collection("AssignedJobs")
+                .whereEqualTo("clientId", clientId)
+                .whereEqualTo("jobId", jobId)
+                .whereEqualTo("workerId", worker.getWorkerId())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        // Job is already assigned to this worker
+                        Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Proceed with the assignment
+                        FirebaseFirestore.getInstance().collection("clients").document(clientId).get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    if (documentSnapshot.exists()) {
+                                        String clientName = documentSnapshot.getString("name");
+                                        String clientPhoneNumber = documentSnapshot.getString("phoneNumber");
+                                        String clientLocation = documentSnapshot.getString("location");
+                                        String clientEmail = documentSnapshot.getString("email");
 
-        FirebaseFirestore.getInstance().collection("clients").document(clientId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String clientName = documentSnapshot.getString("name");
-                        String clientPhoneNumber = documentSnapshot.getString("phoneNumber");
-                        String clientLocation = documentSnapshot.getString("location");
-                        String clientEmail = documentSnapshot.getString("email");
+                                        Map<String, Object> assignedJob = new HashMap<>();
+                                        assignedJob.put("clientId", clientId);
+                                        assignedJob.put("clientName", clientName);
+                                        assignedJob.put("clientPhoneNumber", clientPhoneNumber);
+                                        assignedJob.put("clientLocation", clientLocation);
+                                        assignedJob.put("clientEmail", clientEmail);
+                                        assignedJob.put("workerId", worker.getWorkerId());
+                                        assignedJob.put("workerName", worker.getName());
+                                        assignedJob.put("jobId", jobId);
+                                        assignedJob.put("jobName", jobName);
+                                        assignedJob.put("jobStartDate", startDate);
+                                        assignedJob.put("minExperience", minExperience);
+                                        assignedJob.put("location", location);
+                                        assignedJob.put("price", price);
+                                        assignedJob.put("jobDescription", jobDescription);
+                                        assignedJob.put("rating", 0);
+                                        assignedJob.put("review", "");
+                                        assignedJob.put("timestamp", Timestamp.now());
 
-                        Map<String, Object> assignedJob = new HashMap<>();
-                        assignedJob.put("clientId", clientId);
-                        assignedJob.put("clientName", clientName);
-                        assignedJob.put("clientPhoneNumber", clientPhoneNumber);
-                        assignedJob.put("clientLocation", clientLocation);
-                        assignedJob.put("clientEmail", clientEmail);
-                        assignedJob.put("workerId", worker.getWorkerId());
-                        assignedJob.put("workerName", worker.getName());
-                        assignedJob.put("jobId", jobId);
-                        assignedJob.put("jobName", jobName);
-                        assignedJob.put("jobStartDate", startDate);
-                        assignedJob.put("minExperience", minExperience);
-                        assignedJob.put("location", location);
-                        assignedJob.put("price", price);
-                        assignedJob.put("jobDescription", jobDescription);
-                        assignedJob.put("rating", 0);
-                        assignedJob.put("review", "");
-                        assignedJob.put("timestamp", Timestamp.now());
+                                        String documentId = jobId; // Use jobId as the document ID
 
-                        // Use the job ID as the document ID for both collections
-                        String documentId = jobId; // Use jobId as the document ID
+                                        FirebaseFirestore.getInstance().collection("AssignedJobs")
+                                                .document(documentId) // Set document ID
+                                                .set(assignedJob)
+                                                .addOnSuccessListener(documentReference -> {
+                                                    Log.d("AssignedJobs", "Assigned job ID: " + documentId);
 
-                        FirebaseFirestore.getInstance().collection("AssignedJobs")
-                                .document(documentId) // Set document ID
-                                .set(assignedJob)
-                                .addOnSuccessListener(documentReference -> {
-                                    Log.d("AssignedJobs", "Assigned job ID: " + documentId);
+                                                    String key = clientId + "_" + jobId;
+                                                    Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
+                                                    assignedWorkers.add(worker.getWorkerId());
+                                                    assignedJobsMap.put(key, assignedWorkers);
 
-                                    String key = clientId + "_" + jobId;
-                                    Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
-                                    assignedWorkers.add(worker.getWorkerId());
-                                    assignedJobsMap.put(key, assignedWorkers);
+                                                    saveAssignmentState(true);
+                                                    Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
+                                                    worker.setAssignedJobs(worker.getAssignedJobs() + 1);
+                                                    workerAdapter.notifyDataSetChanged();
+                                                    notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
 
-                                    saveAssignmentState(true);
-                                    Toast.makeText(ViewApplicants.this, "Job assigned to " + worker.getName(), Toast.LENGTH_SHORT).show();
-                                    worker.setAssignedJobs(worker.getAssignedJobs() + 1);
-                                    workerAdapter.notifyDataSetChanged();
-                                    notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
+                                                    FirebaseFirestore.getInstance().collection("ClientJobsDetail")
+                                                            .document(documentId) // Set document ID
+                                                            .set(assignedJob)
+                                                            .addOnSuccessListener(clientJobsDetailRef -> {
+                                                                Log.d("ClientJobsDetail", "Job details stored in ClientJobsDetail successfully");
 
-                                    FirebaseFirestore.getInstance().collection("ClientJobsDetail")
-                                            .document(documentId) // Set document ID
-                                            .set(assignedJob)
-                                            .addOnSuccessListener(clientJobsDetailRef -> {
-                                                Log.d("ClientJobsDetail", "Job details stored in ClientJobsDetail successfully");
-                                            })
-                                            .addOnFailureListener(e -> {
-                                                Log.e("ClientJobsDetail", "Failed to store job details in ClientJobsDetail: " + e.getMessage());
-                                            });
+                                                                // Add RatingsAndReviews document
+                                                                Map<String, Object> ratingsAndReviews = new HashMap<>();
+                                                                ratingsAndReviews.put("rating", 0);
+                                                                ratingsAndReviews.put("review", "");
+                                                                ratingsAndReviews.put("workerId", worker.getWorkerId());
+                                                                ratingsAndReviews.put("jobId", jobId);
+
+                                                                FirebaseFirestore.getInstance().collection("RatingsAndReviews")
+                                                                        .document(documentId) // Set document ID
+                                                                        .set(ratingsAndReviews)
+                                                                        .addOnSuccessListener(ratingsAndReviewsRef -> {
+                                                                            Log.d("RatingsAndReviews", "Ratings and Reviews stored successfully");
+                                                                        })
+                                                                        .addOnFailureListener(e -> {
+                                                                            Log.e("RatingsAndReviews", "Failed to store Ratings and Reviews: " + e.getMessage());
+                                                                        });
+                                                            })
+                                                            .addOnFailureListener(e -> {
+                                                                Log.e("ClientJobsDetail", "Failed to store job details in ClientJobsDetail: " + e.getMessage());
+                                                            });
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                });
+                                    } else {
+                                        Toast.makeText(ViewApplicants.this, "Client details not found", Toast.LENGTH_SHORT).show();
+                                    }
                                 })
                                 .addOnFailureListener(e -> {
-                                    Toast.makeText(ViewApplicants.this, "Failed to assign job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ViewApplicants.this, "Error fetching client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
-                    } else {
-                        Toast.makeText(ViewApplicants.this, "Client details not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(ViewApplicants.this, "Error fetching client details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ViewApplicants.this, "Error checking existing assignment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 
     private void saveAssignmentState(boolean isAssigned) {
         getSharedPreferences("ViewApplicantsPrefs", MODE_PRIVATE)

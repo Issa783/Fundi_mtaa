@@ -59,6 +59,7 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
         // Load assigned jobs for the current client
         loadAssignedJobsForClient();
     }
+
     private void retrieveJobDetails(String jobId) {
         Log.d(TAG, "Retrieving details for job ID: " + jobId); // Log the job ID
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -94,8 +95,6 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                 });
     }
 
-
-
     private void loadAssignedJobsForClient() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -126,6 +125,26 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
         }
     }
 
+    private void deleteJob(String jobId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("ClientJobsDetail").document(jobId)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Remove job from the local list and notify the adapter
+                    for (int i = 0; i < jobList.size(); i++) {
+                        if (jobList.get(i).getJobId().equals(jobId)) {
+                            jobList.remove(i);
+                            jobAdapter.notifyItemRemoved(i);
+                            Toast.makeText(ClientJobHistoryActivity.this, "Job deleted successfully", Toast.LENGTH_SHORT).show();
+                            break;
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle failure
+                    Toast.makeText(ClientJobHistoryActivity.this, "Failed to delete job: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
     public class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
 
@@ -159,6 +178,7 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
             private TextView textViewJobStartDate;
             private Button buttonViewDetails;
             private Button buttonRateAndReview;
+            private Button buttonDelete;
 
             public JobViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -166,6 +186,7 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                 textViewJobStartDate = itemView.findViewById(R.id.textViewJobStartDate);
                 buttonViewDetails = itemView.findViewById(R.id.buttonViewDetails);
                 buttonRateAndReview = itemView.findViewById(R.id.buttonRateAndReview);
+                buttonDelete = itemView.findViewById(R.id.buttonDelete);
             }
 
             public void bind(Job job) {
@@ -175,8 +196,8 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                 buttonViewDetails.setOnClickListener(v -> {
                     // Retrieve job details from Firestore and start JobDetailsActivity
                     retrieveJobDetails(job.getJobId());
-
                 });
+
                 buttonRateAndReview.setOnClickListener(v -> {
                     // Create an Intent to navigate to the rating and review activity
                     Intent intent = new Intent(ClientJobHistoryActivity.this, RatingAndReviewActivity.class);
@@ -186,6 +207,10 @@ public class ClientJobHistoryActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
 
+                buttonDelete.setOnClickListener(v -> {
+                    // Delete the job from Firestore
+                    deleteJob(job.getJobId());
+                });
             }
         }
     }

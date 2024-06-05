@@ -50,7 +50,7 @@ public class RatingAndReviewActivity extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Assuming "AssignedJobs" collection has a field for ratings and reviews
-        db.collection("ClientJobsDetail")
+        db.collection("RatingsAndReviews")
                 .document(jobId) // Using the jobId retrieved from intent extras
                 .update("rating", rating, "review", review)
                 .addOnSuccessListener(aVoid -> {
