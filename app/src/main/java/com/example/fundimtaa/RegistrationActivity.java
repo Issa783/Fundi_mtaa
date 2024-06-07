@@ -78,14 +78,17 @@ public class RegistrationActivity extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     String userId = mAuth.getCurrentUser().getUid();
+                                    // Create a new User object based on the role selected
                                     User user;
                                     if (role.equals("client")) {
-                                        user = new User(userId, name, email, phoneNumber, userId, null); // Assign userId as clientId
+                                        // If the role is client, set clientId to userId and workerId to null
+                                        user = new User(userId, name, email, phoneNumber, role, userId, null);
                                     } else {
-                                        user = new User(userId, name, email, phoneNumber, null, userId); // Assign userId as workerId
+                                        // If the role is worker, set workerId to userId and clientId to null
+                                        user = new User(userId, name, email, phoneNumber, role, null, userId);
                                     }
 
-                                    db.collection(role + "s").document(userId)
+                                    db.collection("users").document(userId)
                                             .set(user)
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
@@ -109,6 +112,4 @@ public class RegistrationActivity extends AppCompatActivity {
             }
         });
     }
-    }
-
-   
+}

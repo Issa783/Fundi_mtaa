@@ -16,6 +16,15 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".ManageUsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminCheckActivity"
+            android:exported="false" />
+        <activity
             android:name=".NotificationDetailActivity"
             android:exported="false" />
         <activity

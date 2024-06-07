@@ -55,9 +55,10 @@ public class ClientActivity extends AppCompatActivity {
                 Map<String, Object> clientData = new HashMap<>();
                 clientData.put("about", about);
                 clientData.put("location", location);
+                clientData.put("role", "client"); // Adding the role field
 
-                // Add the additional data to Firestore
-                db.collection("clients").document(userId)
+                // Add the additional data to Firestore users collection
+                db.collection("users").document(userId)
                         .set(clientData, SetOptions.merge())
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override

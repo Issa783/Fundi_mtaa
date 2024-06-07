@@ -100,9 +100,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             String userId = currentUser.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            db.collection("clients").document(userId).get().addOnSuccessListener(documentSnapshot -> {
+            db.collection("users").document(userId).get().addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
-                    db.collection("clients").document(userId).collection("notifications")
+                    db.collection("users").document(userId).collection("notifications")
                             .document(notificationId)
                             .update("read", true)
                             .addOnSuccessListener(aVoid -> {
@@ -112,9 +112,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             })
                             .addOnFailureListener(e -> Log.e("NotificationAdapter", "Error marking notification as read: " + e.getMessage()));
                 } else {
-                    db.collection("workers").document(userId).get().addOnSuccessListener(workerDocumentSnapshot -> {
+                    db.collection("users").document(userId).get().addOnSuccessListener(workerDocumentSnapshot -> {
                         if (workerDocumentSnapshot.exists()) {
-                            db.collection("workers").document(userId).collection("notifications")
+                            db.collection("users").document(userId).collection("notifications")
                                     .document(notificationId)
                                     .update("read", true)
                                     .addOnSuccessListener(aVoid -> {

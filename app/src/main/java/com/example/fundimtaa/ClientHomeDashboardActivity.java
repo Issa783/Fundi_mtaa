@@ -76,10 +76,10 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
         updateNotificationIndicator();
     }
     public void updateNotificationIndicator() {
-        // Query Firestore to check for unread notifications
+        // Query Firestore to check for unread notifications for the current user
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("clients").document(currentUserId).collection("notifications")
+        db.collection("users").document(currentUserId).collection("notifications")
                 .whereEqualTo("read", false)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -92,4 +92,5 @@ public class ClientHomeDashboardActivity extends AppCompatActivity {
                     }
                 });
     }
+
 }

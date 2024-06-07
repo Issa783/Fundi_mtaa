@@ -1,81 +1,84 @@
 package com.example.fundimtaa;
- public class User {
-        private String userId;
-        private String name;
-        private String email;
-        private String phoneNumber;
-        private String clientId;
-        private String workerId;
-        private double assignedJobsCount;
+public class User {
+    private String userId;
+    private String name;
+    private String email;
+    private String phoneNumber;
+    private String role;
+    private String clientId; // Added field for clientId
+    private String workerId; // Added field for workerId
 
-        public User() {
-            // Default constructor required for calls to DataSnapshot.getValue(User.class)
-        }
+    // Default constructor (required for Firestore)
+    public User() {
+        // Default constructor required for Firestore
+    }
 
-        public User(String userId, String name, String email, String phoneNumber, String clientId, String workerId) {
-            this.userId = userId;
-            this.name = name;
-            this.email = email;
-            this.phoneNumber = phoneNumber;
-            this.clientId = clientId;
-            this.workerId = workerId;
-            this.assignedJobsCount = 0;
-        }
+    public User(String userId, String name, String email, String phoneNumber, String role, String clientId, String workerId) {
+        this.userId = userId;
+        this.name = name;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.role = role;
+        this.clientId = clientId;
+        this.workerId = workerId;
+    }
 
-        public String getUserId() {
-            return userId;
-        }
+    // Getters and setters for all fields
+    // You can generate these automatically in most IDEs like Android Studio
 
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
+    public String getUserId() {
+        return userId;
+    }
 
-        public String getName() {
-            return name;
-        }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-        public void setName(String name) {
-            this.name = name;
-        }
+    public String getName() {
+        return name;
+    }
 
-        public String getEmail() {
-            return email;
-        }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-        public void setEmail(String email) {
-            this.email = email;
-        }
+    public String getEmail() {
+        return email;
+    }
 
-        public String getPhoneNumber() {
-            return phoneNumber;
-        }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-        public void setPhoneNumber(String phoneNumber) {
-            this.phoneNumber = phoneNumber;
-        }
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-        public String getClientId() {
-            return clientId;
-        }
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-        public void setClientId(String clientId) {
-            this.clientId = clientId;
-        }
+    public String getRole() {
+        return role;
+    }
 
-        public String getWorkerId() {
-            return workerId;
-        }
+    public void setRole(String role) {
+        this.role = role;
+    }
 
-        public void setWorkerId(String workerId) {
-            this.workerId = workerId;
-        }
+    public String getClientId() {
+        return clientId;
+    }
 
-     public double getAssignedJobsCount() {
-         return assignedJobsCount;
-     }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
 
-     public void setAssignedJobsCount(double assignedJobsCount) {
-         this.assignedJobsCount = assignedJobsCount;
-     }
- }
+    public String getWorkerId() {
+        return workerId;
+    }
 
+    public void setWorkerId(String workerId) {
+        this.workerId = workerId;
+    }
+}

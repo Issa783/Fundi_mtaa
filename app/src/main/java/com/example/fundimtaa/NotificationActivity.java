@@ -55,16 +55,16 @@ public class NotificationActivity extends AppCompatActivity {
         String userId = mAuth.getCurrentUser().getUid();
         final String[] collectionPath = {""};
 
-        mFirestore.collection("clients").document(userId).get()
+        mFirestore.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        collectionPath[0] = "clients/" + userId + "/notifications";
+                        collectionPath[0] = "users/" + userId + "/notifications";
                         fetchNotifications(collectionPath[0]);
                     } else {
-                        mFirestore.collection("workers").document(userId).get()
+                        mFirestore.collection("users").document(userId).get()
                                 .addOnSuccessListener(workerDocumentSnapshot -> {
                                     if (workerDocumentSnapshot.exists()) {
-                                        collectionPath[0] = "workers/" + userId + "/notifications";
+                                        collectionPath[0] = "users/" + userId + "/notifications";
                                         fetchNotifications(collectionPath[0]);
                                     } else {
                                         Toast.makeText(NotificationActivity.this, "User role not found", Toast.LENGTH_SHORT).show();

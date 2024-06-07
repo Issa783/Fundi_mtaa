@@ -63,33 +63,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             userData.put("token", token);
 
             FirebaseFirestore mFirestore = FirebaseFirestore.getInstance();
-            mFirestore.collection("clients").document(userId).get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot clientDocument = task.getResult();
-                            if (clientDocument.exists()) {
-                                updateToken(mFirestore, "clients", userId, userData);
-                            } else {
-                                mFirestore.collection("workers").document(userId).get()
-                                        .addOnCompleteListener(workerTask -> {
-                                            if (workerTask.isSuccessful()) {
-                                                DocumentSnapshot workerDocument = workerTask.getResult();
-                                                if (workerDocument.exists()) {
-                                                    updateToken(mFirestore, "workers", userId, userData);
-                                                } else {
-                                                    Log.e(TAG, "User role not found");
-                                                }
-                                            } else {
-                                                Log.e(TAG, "Error fetching worker document: " + workerTask.getException().getMessage());
-                                            }
-                                        });
-                            }
-                        } else {
-                            Log.e(TAG, "Error fetching client document: " + task.getException().getMessage());
-                        }
-                    });
+            mFirestore.collection("users").document(userId)
+                    .update(userData)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Device token saved for user"))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error saving device token: " + e.getMessage()));
         }
     }
+
+
 
     private void updateToken(FirebaseFirestore mFirestore, String collection, String userId, Map<String, Object> userData) {
         mFirestore.collection(collection).document(userId)

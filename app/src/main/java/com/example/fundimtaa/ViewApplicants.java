@@ -432,7 +432,7 @@ public class ViewApplicants extends AppCompatActivity {
                         Toast.makeText(ViewApplicants.this, "You have already assigned this job to " + worker.getName(), Toast.LENGTH_SHORT).show();
                     } else {
                         // Proceed with the assignment
-                        FirebaseFirestore.getInstance().collection("clients").document(clientId).get()
+                        FirebaseFirestore.getInstance().collection("users").document(clientId).get()
                                 .addOnSuccessListener(documentSnapshot -> {
                                     if (documentSnapshot.exists()) {
                                         String clientName = documentSnapshot.getString("name");
@@ -490,6 +490,7 @@ public class ViewApplicants extends AppCompatActivity {
                                                                 ratingsAndReviews.put("review", "");
                                                                 ratingsAndReviews.put("workerId", worker.getWorkerId());
                                                                 ratingsAndReviews.put("jobId", jobId);
+                                                                ratingsAndReviews.put("jobName", jobName);
 
                                                                 FirebaseFirestore.getInstance().collection("RatingsAndReviews")
                                                                         .document(documentId) // Set document ID

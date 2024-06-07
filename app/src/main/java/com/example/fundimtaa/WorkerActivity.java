@@ -83,10 +83,11 @@ public class WorkerActivity extends AppCompatActivity {
                 workerData.put("location", location);
                 workerData.put("specialization", specialization);
                 workerData.put("assignedJobsCount",0);
+                workerData.put("role", "worker");
                // workerData.put("cvName", cvName);
 
                 // Add the additional data to Firestore
-                db.collection("workers").document(userId)
+                db.collection("users").document(userId)
                         .set(workerData, SetOptions.merge())
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override

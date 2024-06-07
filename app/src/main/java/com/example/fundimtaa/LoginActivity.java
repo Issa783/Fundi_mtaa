@@ -5,9 +5,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,7 +59,7 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        TextView  forgotPassword = findViewById(R.id.forgotpassword);
+        TextView forgotPassword = findViewById(R.id.forgotpassword);
         forgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +87,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Get email and password from EditText fields and perform normal email/password authentication
-                // Your existing email/password authentication code goes here
                 EditText editTextEmail = findViewById(R.id.editTextEmail);
                 EditText editTextPassword = findViewById(R.id.editTextPassword);
                 String email = editTextEmail.getText().toString().trim();
@@ -98,7 +97,6 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                handleLogin();
 
                 // Perform login with Firebase Authentication
                 mAuth.signInWithEmailAndPassword(email, password)
@@ -112,53 +110,47 @@ public class LoginActivity extends AppCompatActivity {
 
                                     // Get user's role from Firestore and redirect accordingly
                                     String userId = user.getUid();
-                                    mFirestore.collection("clients").document(userId).get()
+                                    mFirestore.collection("users").document(userId).get()
                                             .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                                     if (task.isSuccessful()) {
                                                         DocumentSnapshot document = task.getResult();
                                                         if (document.exists()) {
-                                                            // User is a client
-                                                            startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                            String role = document.getString("role");
+                                                            if (role != null) {
+                                                                switch (role) {
+                                                                    case "client":
+                                                                        startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                                        break;
+                                                                    case "worker":
+                                                                        startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
+                                                                        break;
+                                                                    case "admin":
+                                                                        startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                                                                        break;
+                                                                    default:
+                                                                        // User role not found
+                                                                        Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
+                                                                        break;
+                                                                }
+                                                            }
                                                         } else {
-                                                            // User is not a client, check if they are a worker
-                                                            mFirestore.collection("workers").document(userId).get()
-                                                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                                                        @Override
-                                                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                                            if (task.isSuccessful()) {
-                                                                                DocumentSnapshot document = task.getResult();
-                                                                                if (document.exists()) {
-                                                                                    // User is a worker
-                                                                                    startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
-                                                                                } else {
-                                                                                    // User is neither a client nor a worker
-                                                                                    Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
-                                                                                }
-                                                                            } else {
-                                                                                // Error fetching worker document
-                                                                                Toast.makeText(LoginActivity.this, "Error fetching worker document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                                            }
-                                                                        }
-                                                                    });
+                                                            // Document doesn't exist, handle error
+                                                            Toast.makeText(LoginActivity.this, "User document not found", Toast.LENGTH_SHORT).show();
                                                         }
                                                     } else {
-                                                        // Error fetching client document
-                                                        Toast.makeText(LoginActivity.this, "Error fetching client document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                        // Error fetching user document
+                                                        Toast.makeText(LoginActivity.this, "Error fetching user document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                                     }
                                                 }
                                             });
-
                                 } else {
                                     // If sign in fails, display a message to the user.
-                                    Toast.makeText(LoginActivity.this, "Authentication failed.email or password is incorrect.", Toast.LENGTH_SHORT).show();
-                                    Toast.makeText(LoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
-
+                                    Toast.makeText(LoginActivity.this, "Authentication failed. Email or password is incorrect.", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
-
             }
         });
 
@@ -173,6 +165,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
     private void handleLogin() {
         // After successful login, retrieve the device token
         FirebaseMessaging.getInstance().getToken()
@@ -203,70 +196,24 @@ public class LoginActivity extends AppCompatActivity {
             userData.put("token", token);
             // Add other user data as needed
 
-            // Determine the user role (client or worker) based on Firestore collections
-            mFirestore.collection("clients").document(userId).get()
-                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            // Update the user document with the device token
+            mFirestore.collection("users").document(userId)
+                    .update(userData)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot clientDocument = task.getResult();
-                                if (clientDocument.exists()) {
-                                    // User is a client, save device token in "clients" collection
-                                    mFirestore.collection("clients").document(userId)
-                                            .update(userData)
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-                                                    Log.d("LoginActivity", "Device token saved for client");
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    Log.e("LoginActivity", "Error saving device token for client: " + e.getMessage());
-                                                }
-                                            });
-                                } else {
-                                    // User is not a client, check if they are a worker
-                                    mFirestore.collection("workers").document(userId).get()
-                                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                    if (task.isSuccessful()) {
-                                                        DocumentSnapshot workerDocument = task.getResult();
-                                                        if (workerDocument.exists()) {
-                                                            // User is a worker, save device token in "workers" collection
-                                                            mFirestore.collection("workers").document(userId)
-                                                                    .update(userData)
-                                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                        @Override
-                                                                        public void onSuccess(Void aVoid) {
-                                                                            Log.d("LoginActivity", "Device token saved for worker");
-                                                                        }
-                                                                    })
-                                                                    .addOnFailureListener(new OnFailureListener() {
-                                                                        @Override
-                                                                        public void onFailure(@NonNull Exception e) {
-                                                                            Log.e("LoginActivity", "Error saving device token for worker: " + e.getMessage());
-                                                                        }
-                                                                    });
-                                                        } else {
-                                                            // User is neither a client nor a worker
-                                                            Log.e("LoginActivity", "User role not found");
-                                                        }
-                                                    } else {
-                                                        // Error fetching worker document
-                                                        Log.e("LoginActivity", "Error fetching worker document: " + task.getException().getMessage());
-                                                    }
-                                                }
-                                            });
-                                }
-                            } else {
-                                // Error fetching client document
-                                Log.e("LoginActivity", "Error fetching client document: " + task.getException().getMessage());
-                            }
+                        public void onSuccess(Void aVoid) {
+                            Log.d("LoginActivity", "Device token saved for the user");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("LoginActivity", "Error saving device token: " + e.getMessage());
                         }
                     });
+        } else {
+            // Role not found
+            Log.e("LoginActivity", "User role not found");
         }
     }
 
@@ -308,44 +255,41 @@ public class LoginActivity extends AppCompatActivity {
 
                             // Get user's role from Firestore and redirect accordingly
                             String userId = user.getUid();
-                            mFirestore.collection("clients").document(userId).get()
+                            mFirestore.collection("users").document(userId).get()
                                     .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                         @Override
                                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                             if (task.isSuccessful()) {
                                                 DocumentSnapshot document = task.getResult();
                                                 if (document.exists()) {
-                                                    // User is a client
-                                                    startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                    String role = document.getString("role");
+                                                    if (role != null) {
+                                                        switch (role) {
+                                                            case "client":
+                                                                startActivity(new Intent(LoginActivity.this, ClientHomeDashboardActivity.class));
+                                                                break;
+                                                            case "worker":
+                                                                startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
+                                                                break;
+                                                            case "admin":
+                                                                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                                                                break;
+                                                            default:
+                                                                // User role not found
+                                                                Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
+                                                                break;
+                                                        }
+                                                    }
                                                 } else {
-                                                    // User is not a client, check if they are a worker
-                                                    mFirestore.collection("workers").document(userId).get()
-                                                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                                                @Override
-                                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                                    if (task.isSuccessful()) {
-                                                                        DocumentSnapshot document = task.getResult();
-                                                                        if (document.exists()) {
-                                                                            // User is a worker
-                                                                            startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
-                                                                        } else {
-                                                                            // User is neither a client nor a worker
-                                                                            Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
-                                                                        }
-                                                                    } else {
-                                                                        // Error fetching worker document
-                                                                        Toast.makeText(LoginActivity.this, "Error fetching worker document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                                    }
-                                                                }
-                                                            });
+                                                    // Document doesn't exist, handle error
+                                                    Toast.makeText(LoginActivity.this, "User document not found", Toast.LENGTH_SHORT).show();
                                                 }
                                             } else {
-                                                // Error fetching client document
-                                                Toast.makeText(LoginActivity.this, "Error fetching client document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                // Error fetching user document
+                                                Toast.makeText(LoginActivity.this, "Error fetching user document: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                             }
                                         }
                                     });
-
                         } else {
                             // Sign in failed
                             Toast.makeText(LoginActivity.this, "Google Sign-In failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -353,5 +297,4 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
-
 }
