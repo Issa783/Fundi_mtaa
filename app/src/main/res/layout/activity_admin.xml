@@ -29,6 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Manage Users"
+            android:textColor="@color/my_primary"
             android:background="?attr/selectableItemBackground" />
     </androidx.cardview.widget.CardView>
 
@@ -44,6 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Manage Jobs"
+            android:textColor="@color/my_primary"
             android:background="?attr/selectableItemBackground" />
     </androidx.cardview.widget.CardView>
 
@@ -58,6 +60,7 @@
             android:id="@+id/buttonContentModeration"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/my_primary"
             android:text="Content Moderation"
             android:background="?attr/selectableItemBackground" />
     </androidx.cardview.widget.CardView>

@@ -47,7 +47,7 @@
                 android:id="@+id/buttonViewDetails"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:text="View Details" />
+                android:text="View Job Details" />
 
             <!-- Apply Button -->
             <Button
@@ -55,6 +55,12 @@
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:text="Apply" />
+            <!-- Apply Button -->
+            <Button
+                android:id="@+id/buttonReport"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="Report Issue" />
 
         </LinearLayout>
 
