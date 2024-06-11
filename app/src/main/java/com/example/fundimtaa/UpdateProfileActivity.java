@@ -61,7 +61,7 @@ public class UpdateProfileActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String workerId = currentUser.getUid();
-            db.collection("workers").document(workerId)
+            db.collection("users").document(workerId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {

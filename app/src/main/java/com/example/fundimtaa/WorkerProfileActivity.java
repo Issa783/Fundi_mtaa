@@ -66,7 +66,7 @@ public class WorkerProfileActivity extends AppCompatActivity {
 
     private void loadWorkerDetails(String workerId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("workers").document(workerId).get()
+        db.collection("users").document(workerId).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         DocumentSnapshot document = task.getResult();

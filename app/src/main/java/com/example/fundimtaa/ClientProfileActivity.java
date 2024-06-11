@@ -59,7 +59,7 @@ public class ClientProfileActivity extends AppCompatActivity {
             return;
         }
         // Retrieve client details from Firestore
-        db.collection("clients")
+        db.collection("users")
                 .document(clientId)
                 .get()
                 .addOnCompleteListener(task -> {
