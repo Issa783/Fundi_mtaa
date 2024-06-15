@@ -89,7 +89,6 @@ public class ViewApplicants extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         viewModel = new ViewModelProvider(this).get(ViewApplicantsViewModel.class);
 
-
         SearchView searchView = findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -121,9 +120,8 @@ public class ViewApplicants extends AppCompatActivity {
         String price = getIntent().getStringExtra("price");
         String jobDescription = getIntent().getStringExtra("jobDescription");
         String documentId = getIntent().getStringExtra("documentId");
-// Initialize adapter
-        // Inside your onCreate method
 
+        // Initialize adapter
         workerAdapter = new WorkerAdapter(workerList, jobId, jobName, startDate, minExperience, location, price, jobDescription, clientId, documentId);
 
         recyclerViewApplicants.setAdapter(workerAdapter);
@@ -140,7 +138,10 @@ public class ViewApplicants extends AppCompatActivity {
                 workerAdapter.notifyDataSetChanged();
             }
         });
+
+        recommendWorkers();
     }
+
     private void showFilterDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -211,7 +212,6 @@ public class ViewApplicants extends AppCompatActivity {
         dialog.show();
     }
 
-
     // Helper method to parse experience strings into integers
     private int parseExperience(String experience) {
         // Remove non-numeric characters and parse the remaining string as an integer
@@ -242,24 +242,59 @@ public class ViewApplicants extends AppCompatActivity {
                                 String dateOfApplication = document.getString("dateOfApplication");
                                 String experience = document.getString("experience");
                                 Timestamp timestamp = document.getTimestamp("timestamp");
-                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience,timestamp);
+                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
                                 workerList.add(worker);
                             }
                         }
+
                         if (!foundResults) {
-                            // If no results found, display "No Result Found" message
-                            Toast.makeText(ViewApplicants.this, "No Result Found", Toast.LENGTH_SHORT).show();
+                            // Show a message if no results are found
+                            Toast.makeText(ViewApplicants.this, "No workers found with that name.", Toast.LENGTH_SHORT).show();
                         }
-                        workerAdapter.notifyDataSetChanged(); // Notify adapter that data set has changed
+                        workerAdapter.notifyDataSetChanged();
                     } else {
-                        Toast.makeText(ViewApplicants.this, "Failed to fetch workers: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
+    private void loadAssignedJobsFromFirestore(String clientId) {
+        db.collection("assigned_jobs")
+                .whereEqualTo("clientId", clientId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String workerId = document.getString("workerId");
+                            String jobId = document.getString("jobId");
+
+                            // Add workerId and jobId to the assignedJobsMap
+                            if (!assignedJobsMap.containsKey(workerId)) {
+                                assignedJobsMap.put(workerId, new HashSet<>());
+                            }
+                            assignedJobsMap.get(workerId).add(jobId);
+                        }
+
+                        // Update the assigned jobs count for each worker
+                        updateAssignedJobsCountForWorkers();
+                    } else {
+                        Log.e("ViewApplicants", "Error getting assigned jobs: ", task.getException());
+                    }
+                });
+    }
+
+    private void updateAssignedJobsCountForWorkers() {
+        for (Worker worker : workerList) {
+            String workerId = worker.getWorkerId();
+            int assignedJobsCount = assignedJobsMap.containsKey(workerId) ? assignedJobsMap.get(workerId).size() : 0;
+            worker.setAssignedJobs(assignedJobsCount);
+        }
+        workerAdapter.notifyDataSetChanged();
+    }
+
     private void loadWorkers() {
         db.collection("job_applications")
-                .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .whereEqualTo("jobId", jobId)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -276,10 +311,16 @@ public class ViewApplicants extends AppCompatActivity {
                                 String experience = document.getString("experience");
                                 Timestamp timestamp = document.getTimestamp("timestamp");
                                 Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
-
-                                // Fetch the number of assigned jobs for this worker
-                                fetchAssignedJobsCount(worker);
+                                workerList.add(worker);
                             }
+
+                            // Fetch assigned jobs count for each worker
+                            fetchAssignedJobsCountForAllWorkers();
+
+                            // Sort workers based on scores
+                            Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
+
+                            workerAdapter.notifyDataSetChanged();
                         } else {
                             Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
@@ -287,48 +328,55 @@ public class ViewApplicants extends AppCompatActivity {
                 });
     }
 
+    // Fetch assigned jobs count for each worker
+    private void fetchAssignedJobsCountForAllWorkers() {
+        for (Worker worker : workerList) {
+            fetchAssignedJobsCount(worker);
+        }
+    }
+
     private void fetchAssignedJobsCount(Worker worker) {
-        db.collection("AssignedJobs")
+        db.collection("assigned_jobs")
                 .whereEqualTo("workerId", worker.getWorkerId())
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         int assignedJobsCount = task.getResult().size();
                         worker.setAssignedJobs(assignedJobsCount);
-                        workerList.add(worker);
                         workerAdapter.notifyDataSetChanged();
-                    } else {
-                        Toast.makeText(ViewApplicants.this, "Failed to fetch assigned jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
+    private double calculateWorkerScore(Worker worker) {
+        int experience = parseExperience(worker.getExperience());
+        double rating = worker.getRating();
+        int assignedJobs = worker.getAssignedJobs();
 
-    private void loadAssignedJobsFromFirestore(String clientId) {
-        FirebaseFirestore.getInstance().collection("AssignedJobs")
-                .whereEqualTo("clientId", clientId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        String workerId = document.getString("workerId");
-                        String jobId = document.getString("jobId");
-                        // Create a unique key for the map
-                        String key = clientId + "_" + jobId;
-                        Set<String> assignedWorkers = assignedJobsMap.getOrDefault(key, new HashSet<>());
-                        assignedWorkers.add(workerId);
-                        assignedJobsMap.put(key, assignedWorkers);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    // Handle failure
-                });
+        // Normalize values (adjust normalization logic based on your data)
+        double normalizedExperience = (double) experience / 30; // Assuming max experience is 30 years
+        double normalizedRating = rating / 5; // Assuming max rating is 5
+        double normalizedAssignedJobs = 1.0 / (assignedJobs + 1); // More jobs, lower score
+
+        // Calculate final score based on weights
+        return (EXPERIENCE_WEIGHT * normalizedExperience) +
+                (RATING_WEIGHT * normalizedRating) +
+                (ASSIGNED_JOBS_WEIGHT * normalizedAssignedJobs);
     }
 
+    private void recommendWorkers() {
+        // Add code to recommend workers based on the scoring system
+        Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
 
-    private class WorkerAdapter extends RecyclerView.Adapter<WorkerViewHolder> {
+        // Update the adapter to reflect the recommended workers
+        workerAdapter.notifyDataSetChanged();
+    }
+
+    private class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
+
         private List<Worker> workerList;
         private String jobId;
-        private String jobName;// Add jobName field
+        private String jobName;
         private String startDate;
         private String minExperience;
         private String location;
@@ -337,10 +385,7 @@ public class ViewApplicants extends AppCompatActivity {
         private String clientId;
         private String documentId;
 
-
-        public WorkerAdapter(List<Worker> workerList, String jobId, String jobName, String startDate,
-                             String minExperience, String location, String price, String jobDescription,
-                             String clientId, String documentId) {
+        public WorkerAdapter(List<Worker> workerList, String jobId, String jobName, String startDate, String minExperience, String location, String price, String jobDescription, String clientId, String documentId) {
             this.workerList = workerList;
             this.jobId = jobId;
             this.jobName = jobName;
@@ -353,19 +398,29 @@ public class ViewApplicants extends AppCompatActivity {
             this.documentId = documentId;
         }
 
+        @NonNull
         @Override
-        public WorkerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = getLayoutInflater().inflate(R.layout.item_view_applicants, parent, false);
-            return new WorkerViewHolder(view);
+        public WorkerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_view_applicants, parent, false);
+            return new WorkerViewHolder(itemView);
         }
 
         @Override
-        public void onBindViewHolder(WorkerViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull WorkerViewHolder holder, int position) {
             Worker worker = workerList.get(position);
             holder.textViewWorkerName.setText("Worker Name: " + worker.getName());
             holder.textViewDateOfApplication.setText("Applied on: " + worker.getDateOfApplication());
             holder.textViewExperience.setText("Experience: " + worker.getExperience());
-            holder.textViewAssignedJobs.setText("Assigned Jobs: " + worker.getAssignedJobs()); // Display assigned jobs count
+            holder.textViewAssignedJobs.setText("Assigned Jobs: " + worker.getAssignedJobs());
+
+            // Highlight recommended workers
+            if (position < 3) { // Top 3 workers
+                holder.textViewRecommended.setVisibility(View.VISIBLE);
+                holder.itemView.setBackgroundColor(ContextCompat.getColor(ViewApplicants.this, R.color.recommended_worker_bg));
+            } else {
+                holder.textViewRecommended.setVisibility(View.GONE);
+                holder.itemView.setBackgroundColor(ContextCompat.getColor(ViewApplicants.this, R.color.default_worker_bg));
+            }
 
             holder.buttonViewProfile.setOnClickListener(v -> {
                 Intent intent = new Intent(ViewApplicants.this, ViewProfileWorkerActivity.class);
@@ -374,43 +429,36 @@ public class ViewApplicants extends AppCompatActivity {
             });
 
             holder.buttonAssignJob.setOnClickListener(v -> {
-                assignJob(
-                        workerList.get(holder.getAdapterPosition()), // Worker
-                        jobName, // Job name
-                        startDate, // Start date
-                        minExperience, // Minimum experience
-                        location, // Location
-                        price, // Price
-                        jobDescription // Job description
-                );
+                assignJob(worker, jobName, startDate, minExperience, location, price, jobDescription);
             });
         }
-
 
         @Override
         public int getItemCount() {
             return workerList.size();
         }
-    }
 
-    private static class WorkerViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewWorkerName;
-        TextView textViewDateOfApplication;
-        TextView textViewExperience;
-        TextView textViewAssignedJobs; // Add this field
-        Button buttonAssignJob;
-        Button buttonViewProfile;
+        public class WorkerViewHolder extends RecyclerView.ViewHolder {
+            TextView textViewWorkerName, textViewDateOfApplication, textViewExperience, textViewAssignedJobs, textViewRecommended;
+            Button buttonViewProfile, buttonAssignJob;
 
-        public WorkerViewHolder(View itemView) {
-            super(itemView);
-            textViewWorkerName = itemView.findViewById(R.id.textViewName);
-            textViewDateOfApplication = itemView.findViewById(R.id.textViewDateOfApplication);
-            textViewExperience = itemView.findViewById(R.id.textViewExperience);
-            textViewAssignedJobs = itemView.findViewById(R.id.textViewAssignedJobs); // Initialize this field
-            buttonAssignJob = itemView.findViewById(R.id.buttonAssignJob);
-            buttonViewProfile = itemView.findViewById(R.id.buttonViewProfile);
+            public WorkerViewHolder(@NonNull View itemView) {
+                super(itemView);
+                textViewWorkerName = itemView.findViewById(R.id.textViewName);
+                textViewDateOfApplication = itemView.findViewById(R.id.textViewDateOfApplication);
+                textViewExperience = itemView.findViewById(R.id.textViewExperience);
+                textViewAssignedJobs = itemView.findViewById(R.id.textViewAssignedJobs);
+                textViewRecommended = itemView.findViewById(R.id.textViewRecommended); // TextView for recommended tag
+                buttonViewProfile = itemView.findViewById(R.id.buttonViewProfile);
+                buttonAssignJob = itemView.findViewById(R.id.buttonAssignJob);
+            }
         }
     }
+
+    // Weights for the criteria
+    private static final double EXPERIENCE_WEIGHT = 0.4;
+    private static final double RATING_WEIGHT = 0.4;
+    private static final double ASSIGNED_JOBS_WEIGHT = 0.2;
 
 
     private boolean isJobAssignedToWorker(String clientId, String jobId, String workerId) {

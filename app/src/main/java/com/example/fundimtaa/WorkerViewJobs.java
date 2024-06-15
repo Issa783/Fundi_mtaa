@@ -147,7 +147,7 @@ public class WorkerViewJobs extends AppCompatActivity {
             textViewPrice = itemView.findViewById(R.id.textViewPrice);
             buttonViewDetails = itemView.findViewById(R.id.buttonViewDetails);
             buttonViewApply = itemView.findViewById(R.id.buttonApply);
-          //  buttonViewReport = itemView.findViewById(R.id.buttonReport);
+            buttonViewReport = itemView.findViewById(R.id.buttonReport);
         }
     }
 
@@ -200,10 +200,10 @@ public class WorkerViewJobs extends AppCompatActivity {
                 context.startActivity(intent);
             });
 
-           // holder.buttonViewReport.setOnClickListener(v -> {
-             //   ReportDialog reportDialog = new ReportDialog(context, job.getJobId(),userId);
-             //   reportDialog.show();
-           // });
+            holder.buttonViewReport.setOnClickListener(v -> {
+               ReportDialog reportDialog = new ReportDialog(context, job.getJobId(),userId);
+               reportDialog.show();
+            });
         }
 
         @Override

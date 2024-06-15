@@ -4,6 +4,8 @@
     <color name="worker_button_unclicked">#00FF00</color>
     <color name="worker_button_clicked">#0000FF</color>
     <color name="client_button_unclicked">#FFFF00</color>
+    <color name="recommended_worker_bg">#FFE0B2</color> <!-- Light orange background for recommended workers -->
+    <color name="default_worker_bg">#FFFFFF</color> <!-- Default white background -->
     <color name="black">#FF000000</color>
     <color name="white">#E6DBDB</color>
     <color name="pink">#FFE31A1A</color>

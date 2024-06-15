@@ -27,14 +27,14 @@ public class AdminActivity extends AppCompatActivity {
         buttonManageJobs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // startActivity(new Intent(AdminActivity.this, ManageJobsActivity.class));
+               startActivity(new Intent(AdminActivity.this, ManageJobsActivity.class));
             }
         });
 
         buttonContentModeration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //startActivity(new Intent(AdminActivity.this, ContentModerationActivity.class));
+                startActivity(new Intent(AdminActivity.this, ContentModerationActivity.class));
             }
         });
     }

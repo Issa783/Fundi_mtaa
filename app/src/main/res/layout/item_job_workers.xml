@@ -55,12 +55,12 @@
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
                 android:text="Apply" />
-            <!--
+
             <Button
                 android:id="@+id/buttonReport"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:text="Report Issue" />-->
+                android:text="Report Issue" />
 
         </LinearLayout>
 

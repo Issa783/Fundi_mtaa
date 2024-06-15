@@ -15,6 +15,10 @@ public class Job {
     private boolean isCompleted;
     private Timestamp timestamp;
     private String workerId;
+    private String clientName;
+    private String clientEmail;
+    private String clientPhoneNumber;
+    private String clientLocation;
 
     // Default constructor required by Firestore
     public Job() {
@@ -63,8 +67,16 @@ public class Job {
         return jobName;
     }
 
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
+    }
+
     public String getJobStartDate() {
         return jobStartDate;
+    }
+
+    public void setJobStartDate(String jobStartDate) {
+        this.jobStartDate = jobStartDate;
     }
 
     public String getMinExperience() {
@@ -121,5 +133,36 @@ public class Job {
 
     public void setWorkerId(String workerId) {
         this.workerId = workerId;
+    }
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
+    public String getClientEmail() {
+        return clientEmail;
+    }
+
+    public void setClientEmail(String clientEmail) {
+        this.clientEmail = clientEmail;
+    }
+
+    public String getClientPhoneNumber() {
+        return clientPhoneNumber;
+    }
+
+    public void setClientPhoneNumber(String clientPhoneNumber) {
+        this.clientPhoneNumber = clientPhoneNumber;
+    }
+
+    public String getClientLocation() {
+        return clientLocation;
+    }
+
+    public void setClientLocation(String clientLocation) {
+        this.clientLocation = clientLocation;
     }
 }

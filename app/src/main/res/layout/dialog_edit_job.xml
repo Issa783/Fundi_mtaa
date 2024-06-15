@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editTextJobTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Job Title" />
+
+    <EditText
+        android:id="@+id/editTextJobDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Job Description"
+        android:layout_marginTop="8dp" />
+    <EditText
+        android:id="@+id/editTextJobLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="location"
+        android:layout_marginTop="8dp" />
+    <EditText
+        android:id="@+id/editTextJobPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="price"
+        android:layout_marginTop="8dp" />
+    <EditText
+        android:id="@+id/editTextJobMinExperience"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Minimum Experience"
+        android:layout_marginTop="8dp" />
+    <EditText
+        android:id="@+id/editTextJobStartDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="JobStartDate"
+        android:layout_marginTop="8dp" />
+</LinearLayout>

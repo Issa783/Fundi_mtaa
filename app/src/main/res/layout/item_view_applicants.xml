@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <TextView
             android:id="@+id/textViewName"
             android:layout_width="match_parent"
@@ -19,26 +20,36 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- Start Date -->
         <TextView
             android:id="@+id/textViewDateOfApplication"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp" />
+
         <TextView
             android:id="@+id/textViewExperience"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp" />
+
         <TextView
             android:id="@+id/textViewAssignedJobs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:layout_marginTop="4dp"
-            />
+            android:layout_marginTop="4dp" />
 
-
+        <!-- Recommended Tag -->
+        <TextView
+            android:id="@+id/textViewRecommended"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recommended"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorAccent"
+            android:visibility="gone"
+            android:layout_marginTop="4dp" />
 
         <!-- Buttons -->
         <LinearLayout
@@ -47,18 +58,16 @@
             android:orientation="vertical"
             android:layout_marginTop="8dp">
 
-            <!-- View Details Button -->
             <Button
                 android:id="@+id/buttonViewProfile"
-                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="View Profile" />
 
-            <!-- Apply Button -->
             <Button
                 android:id="@+id/buttonAssignJob"
-                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Assign Job" />
 
         </LinearLayout>

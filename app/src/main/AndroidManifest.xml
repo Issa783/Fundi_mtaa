@@ -16,6 +16,12 @@
         android:theme="@style/Theme.FundiMtaa"
         tools:targetApi="31">
         <activity
+            android:name=".ManageJobsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ReportDetailsDialog"
+            android:exported="false" />
+        <activity
             android:name=".ContentModerationActivity"
             android:exported="false" />
         <activity
