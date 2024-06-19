@@ -82,7 +82,7 @@ public class WorkerActivity extends AppCompatActivity {
                 workerData.put("experience", experience);
                 workerData.put("location", location);
                 workerData.put("specialization", specialization);
-                workerData.put("assignedJobsCount",0);
+                workerData.put("numberOfAssignedJobs",0);
                 workerData.put("role", "worker");
                // workerData.put("cvName", cvName);
 

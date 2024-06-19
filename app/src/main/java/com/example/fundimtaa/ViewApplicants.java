@@ -8,6 +8,8 @@ import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -33,6 +35,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,35 +57,33 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-
 public class ViewApplicants extends AppCompatActivity {
+private boolean isJobAssigned = false;
+private RecyclerView recyclerViewApplicants;
+private WorkerAdapter workerAdapter;
+private List<Worker> workerList;
+private FirebaseFirestore db;
+private ImageView imageViewFilter;
 
-    private boolean isJobAssigned = false;
-    private RecyclerView recyclerViewApplicants;
-    private WorkerAdapter workerAdapter;
-    private List<Worker> workerList;
-    private FirebaseFirestore db;
-    private ImageView imageViewFilter;
+private String jobId;
+private String clientId;
+private String jobName;
+private Map<String, Set<String>> assignedJobsMap = new HashMap<>();
+private ViewApplicantsViewModel viewModel;
+private BroadcastReceiver updateAssignedJobsCountReceiver;
 
-    private String jobId;
-    private String clientId;
-    private String jobName;
-    private Map<String, Set<String>> assignedJobsMap = new HashMap<>();
-    private ViewApplicantsViewModel viewModel;
-    private BroadcastReceiver updateAssignedJobsCountReceiver;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+@Override
+protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_applicants);
 
         ImageView imageViewBackArrow = findViewById(R.id.imageViewBackArrow);
         imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate back to the previous activity
-                onBackPressed();
-            }
+@Override
+public void onClick(View v) {
+        // Navigate back to the previous activity
+        onBackPressed();
+        }
         });
 
         imageViewFilter = findViewById(R.id.imageViewFilter);
@@ -91,16 +92,16 @@ public class ViewApplicants extends AppCompatActivity {
 
         SearchView searchView = findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
+@Override
+public boolean onQueryTextSubmit(String query) {
+        return false;
+        }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                fetchWorkerNamesStartingWith(newText.trim());
-                return true;
-            }
+@Override
+public boolean onQueryTextChange(String newText) {
+        fetchWorkerNamesStartingWith(newText.trim());
+        return true;
+        }
         });
 
         imageViewFilter.setOnClickListener(v -> showFilterDialog());
@@ -131,18 +132,18 @@ public class ViewApplicants extends AppCompatActivity {
         isJobAssigned = getAssignmentState();
         // Observe data from ViewModel
         viewModel.getWorkersLiveData().observe(this, new Observer<List<Worker>>() {
-            @Override
-            public void onChanged(List<Worker> workers) {
-                workerList.clear();
-                workerList.addAll(workers);
-                workerAdapter.notifyDataSetChanged();
-            }
+@Override
+public void onChanged(List<Worker> workers) {
+        workerList.clear();
+        workerList.addAll(workers);
+        workerAdapter.notifyDataSetChanged();
+        }
         });
 
         recommendWorkers();
-    }
+        }
 
-    private void showFilterDialog() {
+private void showFilterDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_filter, null);
@@ -155,222 +156,220 @@ public class ViewApplicants extends AppCompatActivity {
         TextView textViewClose = dialogView.findViewById(R.id.textViewClose);
 
         textViewAvailability.setOnClickListener(v -> {
-            textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
-            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
-            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+        textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+        textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+        textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            Collections.sort(workerList, (worker1, worker2) -> Integer.compare(worker1.getAssignedJobs(), worker2.getAssignedJobs()));
-            workerAdapter.notifyDataSetChanged();
-            dialog.dismiss();
+        Collections.sort(workerList, (worker1, worker2) -> Integer.compare(worker1.getAssignedJobs(), worker2.getAssignedJobs()));
+        workerAdapter.notifyDataSetChanged();
+        dialog.dismiss();
         });
 
         textViewExperience.setOnClickListener(v -> {
-            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
-            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
-            textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+        textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+        textViewRating.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+        textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            Collections.sort(workerList, (worker1, worker2) -> {
-                int experience1 = parseExperience(worker1.getExperience());
-                int experience2 = parseExperience(worker2.getExperience());
-                return Integer.compare(experience2, experience1);
-            });
-            workerAdapter.notifyDataSetChanged();
-            dialog.dismiss();
+        Collections.sort(workerList, (worker1, worker2) -> {
+        int experience1 = parseExperience(worker1.getExperience());
+        int experience2 = parseExperience(worker2.getExperience());
+        return Integer.compare(experience2, experience1);
+        });
+        workerAdapter.notifyDataSetChanged();
+        dialog.dismiss();
         });
 
         textViewRating.setOnClickListener(v -> {
-            textViewRating.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
-            textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
-            textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+        textViewRating.setTextColor(ContextCompat.getColor(this, R.color.selectedText));
+        textViewExperience.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
+        textViewAvailability.setTextColor(ContextCompat.getColor(this, R.color.defaultText));
 
-            db.collection("RatingsAndReviews")
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            List<Worker> ratedWorkers = new ArrayList<>();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                String workerId = document.getString("workerId");
-                                double rating = document.getDouble("rating");
-                                String review = document.getString("review");
+        db.collection("RatingsAndReviews")
+        .get()
+        .addOnCompleteListener(task -> {
+        if (task.isSuccessful()) {
+        List<Worker> ratedWorkers = new ArrayList<>();
+        for (QueryDocumentSnapshot document : task.getResult()) {
+        String workerId = document.getString("workerId");
+        double rating = document.getDouble("rating");
+        String review = document.getString("review");
 
-                                for (Worker worker : workerList) {
-                                    if (worker.getWorkerId().equals(workerId)) {
-                                        worker.setRating(rating);
-                                        worker.setReview(review);
-                                        ratedWorkers.add(worker);
-                                    }
-                                }
-                            }
-                            Collections.sort(ratedWorkers, (worker1, worker2) -> Double.compare(worker2.getRating(), worker1.getRating()));
-                            viewModel.setWorkers(ratedWorkers);
-                        }
-                    });
-            dialog.dismiss();
+        for (Worker worker : workerList) {
+        if (worker.getWorkerId().equals(workerId)) {
+        worker.setRating(rating);
+        worker.setReview(review);
+        ratedWorkers.add(worker);
+        }
+        }
+        }
+        Collections.sort(ratedWorkers, (worker1, worker2) -> Double.compare(worker2.getRating(), worker1.getRating()));
+        viewModel.setWorkers(ratedWorkers);
+        }
+        });
+        dialog.dismiss();
         });
 
         textViewClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
-    }
+        }
 
-    // Helper method to parse experience strings into integers
-    private int parseExperience(String experience) {
+// Helper method to parse experience strings into integers
+private int parseExperience(String experience) {
         // Remove non-numeric characters and parse the remaining string as an integer
         return Integer.parseInt(experience.replaceAll("[^0-9]", ""));
-    }
+        }
 
-    private void fetchWorkerNamesStartingWith(String searchText) {
+private void fetchWorkerNamesStartingWith(String searchText) {
         // Convert the search text to lowercase for case-insensitive search
         String searchTextLowerCase = searchText.toLowerCase();
 
         // Query Firestore to fetch worker names
         db.collection("job_applications")
-                .whereEqualTo("jobId", jobId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        workerList.clear();
-                        boolean foundResults = false; // Flag to track if results are found
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String name = document.getString("name");
+        .whereEqualTo("jobId", jobId)
+        .get()
+        .addOnCompleteListener(task -> {
+        if (task.isSuccessful()) {
+        workerList.clear();
+        boolean foundResults = false; // Flag to track if results are found
+        for (QueryDocumentSnapshot document : task.getResult()) {
+        String name = document.getString("name");
 
-                            // Check if the name starts with the search text (case-insensitive)
-                            if (name.toLowerCase().startsWith(searchTextLowerCase)) {
-                                foundResults = true; // Set flag to true if results are found
-                                String workerId = document.getString("workerId");
-                                String phoneNumber = document.getString("phoneNumber");
-                                String location = document.getString("location");
-                                String dateOfApplication = document.getString("dateOfApplication");
-                                String experience = document.getString("experience");
-                                Timestamp timestamp = document.getTimestamp("timestamp");
-                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
-                                workerList.add(worker);
-                            }
-                        }
+        // Check if the name starts with the search text (case-insensitive)
+        if (name.toLowerCase().startsWith(searchTextLowerCase)) {
+        foundResults = true; // Set flag to true if results are found
+        String workerId = document.getString("workerId");
+        String phoneNumber = document.getString("phoneNumber");
+        String location = document.getString("location");
+        String dateOfApplication = document.getString("dateOfApplication");
+        String experience = document.getString("experience");
+        Timestamp timestamp = document.getTimestamp("timestamp");
+        Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
+        workerList.add(worker);
+        }
+        }
 
-                        if (!foundResults) {
-                            // Show a message if no results are found
-                            Toast.makeText(ViewApplicants.this, "No workers found with that name.", Toast.LENGTH_SHORT).show();
-                        }
-                        workerAdapter.notifyDataSetChanged();
-                    } else {
-                        Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void loadAssignedJobsFromFirestore(String clientId) {
-        db.collection("assigned_jobs")
-                .whereEqualTo("clientId", clientId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String workerId = document.getString("workerId");
-                            String jobId = document.getString("jobId");
-
-                            // Add workerId and jobId to the assignedJobsMap
-                            if (!assignedJobsMap.containsKey(workerId)) {
-                                assignedJobsMap.put(workerId, new HashSet<>());
-                            }
-                            assignedJobsMap.get(workerId).add(jobId);
-                        }
-
-                        // Update the assigned jobs count for each worker
-                        updateAssignedJobsCountForWorkers();
-                    } else {
-                        Log.e("ViewApplicants", "Error getting assigned jobs: ", task.getException());
-                    }
-                });
-    }
-
-    private void updateAssignedJobsCountForWorkers() {
-        for (Worker worker : workerList) {
-            String workerId = worker.getWorkerId();
-            int assignedJobsCount = assignedJobsMap.containsKey(workerId) ? assignedJobsMap.get(workerId).size() : 0;
-            worker.setAssignedJobs(assignedJobsCount);
+        if (!foundResults) {
+        // Show a message if no results are found
+        Toast.makeText(ViewApplicants.this, "No workers found with that name.", Toast.LENGTH_SHORT).show();
         }
         workerAdapter.notifyDataSetChanged();
-    }
-
-    private void loadWorkers() {
-        db.collection("job_applications")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .whereEqualTo("jobId", jobId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            workerList.clear();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                String workerId = document.getString("workerId");
-                                String name = document.getString("name");
-                                String phoneNumber = document.getString("phoneNumber");
-                                String location = document.getString("location");
-                                String dateOfApplication = document.getString("dateOfApplication");
-                                String experience = document.getString("experience");
-                                Timestamp timestamp = document.getTimestamp("timestamp");
-                                Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
-                                workerList.add(worker);
-                            }
-
-                            // Fetch assigned jobs count for each worker
-                            fetchAssignedJobsCountForAllWorkers();
-
-                            // Sort workers based on scores
-                            Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
-
-                            workerAdapter.notifyDataSetChanged();
-                        } else {
-                            Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
-
-    // Fetch assigned jobs count for each worker
-    private void fetchAssignedJobsCountForAllWorkers() {
-        for (Worker worker : workerList) {
-            fetchAssignedJobsCount(worker);
+        } else {
+        Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
         }
-    }
+        });
+        }
 
-    private void fetchAssignedJobsCount(Worker worker) {
-        db.collection("assigned_jobs")
-                .whereEqualTo("workerId", worker.getWorkerId())
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        int assignedJobsCount = task.getResult().size();
-                        worker.setAssignedJobs(assignedJobsCount);
-                        workerAdapter.notifyDataSetChanged();
-                    }
-                });
-    }
+private void loadAssignedJobsFromFirestore(String clientId) {
+        db.collection("AssignedJobs")
+        .whereEqualTo("clientId", clientId)
+        .get()
+        .addOnCompleteListener(task -> {
+        if (task.isSuccessful()) {
+        for (QueryDocumentSnapshot document : task.getResult()) {
+        String workerId = document.getString("workerId");
+        String jobId = document.getString("jobId");
 
-    private double calculateWorkerScore(Worker worker) {
-        int experience = parseExperience(worker.getExperience());
+        // Add workerId and jobId to the assignedJobsMap
+        if (!assignedJobsMap.containsKey(workerId)) {
+        assignedJobsMap.put(workerId, new HashSet<>());
+        }
+        assignedJobsMap.get(workerId).add(jobId);
+        }
+
+        // Update the assigned jobs count for each worker
+        updateAssignedJobsCountForWorkers();
+        } else {
+        Log.e("ViewApplicants", "Error getting assigned jobs: ", task.getException());
+        }
+        });
+        }
+
+private void updateAssignedJobsCountForWorkers() {
+        for (Worker worker : workerList) {
+        String workerId = worker.getWorkerId();
+        int assignedJobsCount = assignedJobsMap.containsKey(workerId) ? assignedJobsMap.get(workerId).size() : 0;
+        worker.setAssignedJobs(assignedJobsCount);
+        }
+        workerAdapter.notifyDataSetChanged();
+        }
+
+private void loadWorkers() {
+        db.collection("job_applications")
+        .orderBy("timestamp", Query.Direction.DESCENDING)
+        .whereEqualTo("jobId", jobId)
+        .get()
+        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+@Override
+public void onComplete(@NonNull Task<QuerySnapshot> task) {
+        if (task.isSuccessful()) {
+        workerList.clear();
+        for (QueryDocumentSnapshot document : task.getResult()) {
+        String workerId = document.getString("workerId");
+        String name = document.getString("name");
+        String phoneNumber = document.getString("phoneNumber");
+        String location = document.getString("location");
+        String dateOfApplication = document.getString("dateOfApplication");
+        String experience = document.getString("experience");
+        Timestamp timestamp = document.getTimestamp("timestamp");
+        Worker worker = new Worker(workerId, name, phoneNumber, location, dateOfApplication, experience, timestamp);
+        workerList.add(worker);
+        }
+
+        // Fetch assigned jobs count for each worker
+        fetchAssignedJobsCountForAllWorkers();
+
+        // Sort workers based on scores
+        Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
+
+        workerAdapter.notifyDataSetChanged();
+        } else {
+        Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
+        }
+        }
+        });
+        }
+
+// Fetch assigned jobs count for each worker
+private void fetchAssignedJobsCountForAllWorkers() {
+        for (Worker worker : workerList) {
+        fetchAssignedJobsCount(worker);
+        }
+        }
+
+private void fetchAssignedJobsCount(Worker worker) {
+        db.collection("AssignedJobs")
+        .whereEqualTo("workerId", worker.getWorkerId())
+        .get()
+        .addOnCompleteListener(task -> {
+        if (task.isSuccessful()) {
+        int assignedJobsCount = task.getResult().size();
+        worker.setAssignedJobs(assignedJobsCount);
+        workerAdapter.notifyDataSetChanged();
+        }
+        });
+        }
+
+private double calculateWorkerScore(Worker worker) {
         double rating = worker.getRating();
         int assignedJobs = worker.getAssignedJobs();
 
         // Normalize values (adjust normalization logic based on your data)
-        double normalizedExperience = (double) experience / 30; // Assuming max experience is 30 years
         double normalizedRating = rating / 5; // Assuming max rating is 5
         double normalizedAssignedJobs = 1.0 / (assignedJobs + 1); // More jobs, lower score
 
         // Calculate final score based on weights
-        return (EXPERIENCE_WEIGHT * normalizedExperience) +
-                (RATING_WEIGHT * normalizedRating) +
-                (ASSIGNED_JOBS_WEIGHT * normalizedAssignedJobs);
-    }
+        return (RATING_WEIGHT * normalizedRating) +
+        (ASSIGNED_JOBS_WEIGHT * normalizedAssignedJobs);
+        }
 
-    private void recommendWorkers() {
+private void recommendWorkers() {
         // Add code to recommend workers based on the scoring system
         Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
 
         // Update the adapter to reflect the recommended workers
         workerAdapter.notifyDataSetChanged();
-    }
+        }
+
 
     private class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
 
@@ -456,9 +455,8 @@ public class ViewApplicants extends AppCompatActivity {
     }
 
     // Weights for the criteria
-    private static final double EXPERIENCE_WEIGHT = 0.4;
-    private static final double RATING_WEIGHT = 0.4;
-    private static final double ASSIGNED_JOBS_WEIGHT = 0.2;
+     private static final double RATING_WEIGHT = 0.7;
+     private static final double ASSIGNED_JOBS_WEIGHT = 0.3;
 
 
     private boolean isJobAssignedToWorker(String clientId, String jobId, String workerId) {
@@ -525,6 +523,7 @@ public class ViewApplicants extends AppCompatActivity {
                                                     worker.setAssignedJobs(worker.getAssignedJobs() + 1);
                                                     workerAdapter.notifyDataSetChanged();
                                                     notifyJobAssignment(clientId, worker.getWorkerId(), jobName);
+                                                    updateWorkerAssignedJobsCount(worker.getWorkerId());
 
                                                     FirebaseFirestore.getInstance().collection("ClientJobsDetail")
                                                             .document(documentId) // Set document ID
@@ -569,6 +568,26 @@ public class ViewApplicants extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(ViewApplicants.this, "Error checking existing assignment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+    private void updateWorkerAssignedJobsCount(String workerId) {
+        DocumentReference workerRef = FirebaseFirestore.getInstance().collection("AssignedJobs").document(workerId);
+        workerRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                Long currentCount = documentSnapshot.getLong("numberOfAssignedJobs");
+                if (currentCount == null) {
+                    currentCount = 0L;
+                }
+                workerRef.update("numberOfAssignedJobs", currentCount + 1)
+                        .addOnSuccessListener(aVoid -> Log.d("WorkerUpdate", "Updated number of assigned jobs for worker " + workerId))
+                        .addOnFailureListener(e -> Log.e("WorkerUpdate", "Failed to update number of assigned jobs: " + e.getMessage()));
+            } else {
+                Map<String, Object> data = new HashMap<>();
+                data.put("numberOfAssignedJobs", 1);
+                workerRef.set(data, SetOptions.merge())
+                        .addOnSuccessListener(aVoid -> Log.d("WorkerUpdate", "Set number of assigned jobs for worker " + workerId))
+                        .addOnFailureListener(e -> Log.e("WorkerUpdate", "Failed to set number of assigned jobs: " + e.getMessage()));
+            }
+        });
     }
 
 

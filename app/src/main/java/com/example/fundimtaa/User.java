@@ -23,8 +23,6 @@ public class User {
         this.workerId = workerId;
     }
 
-    // Getters and setters for all fields
-    // You can generate these automatically in most IDEs like Android Studio
 
     public String getUserId() {
         return userId;
