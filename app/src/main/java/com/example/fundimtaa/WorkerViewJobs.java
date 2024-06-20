@@ -33,7 +33,6 @@ public class WorkerViewJobs extends AppCompatActivity {
     private SearchView searchView;
     private String userId; // Define userId variable
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +57,7 @@ public class WorkerViewJobs extends AppCompatActivity {
         jobList = new ArrayList<>();
 
         // Initialize adapter
-        jobAdapter = new JobAdapter(this, jobList,userId);
+        jobAdapter = new JobAdapter(this, jobList, userId);
 
         // Set adapter to RecyclerView
         recyclerViewJobs.setAdapter(jobAdapter);
@@ -106,11 +105,28 @@ public class WorkerViewJobs extends AppCompatActivity {
                             String jobDescription = document.getString("jobDescription");
                             Timestamp timestamp = document.getTimestamp("timestamp");
                             String workerId = document.getString("workerId");
-                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false, timestamp, workerId);
+
+                            // Create a Job object without setting isAssigned yet
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false, timestamp, workerId, false);
                             job.setDocumentId(document.getId());
-                            jobList.add(job);
+
+                            // Check the AssignedJobs collection to see if the job is assigned
+                            db.collection("AssignedJobs").document(jobId).get()
+                                    .addOnSuccessListener(assignedJobDocument -> {
+                                        if (assignedJobDocument.exists()) {
+                                            Boolean isAssignedBoolean = assignedJobDocument.getBoolean("isAssigned");
+                                            boolean isAssigned = (isAssignedBoolean != null) ? isAssignedBoolean : false;
+                                            job.setAssigned(isAssigned);
+                                        }
+                                        // Add the job to the list and update the adapter
+                                        jobList.add(job);
+                                        jobAdapter.notifyDataSetChanged();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Handle any errors here if needed
+                                        Toast.makeText(WorkerViewJobs.this, "Failed to check job assignment status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
                         }
-                        jobAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(WorkerViewJobs.this, "Failed to load jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
@@ -156,7 +172,7 @@ public class WorkerViewJobs extends AppCompatActivity {
         private Context context;
         private String userId;
 
-        public JobAdapter(Context context, List<Job> jobList,String userId) {
+        public JobAdapter(Context context, List<Job> jobList, String userId) {
             this.jobList = jobList;
             this.context = context;
             this.userId = userId;
@@ -180,6 +196,14 @@ public class WorkerViewJobs extends AppCompatActivity {
             holder.textViewStartDate.setText("Start Date: " + job.getJobStartDate());
             holder.textViewPrice.setText("Price: " + job.getPrice());
 
+            if (job.isAssigned()) {
+                holder.buttonViewApply.setEnabled(false);
+                holder.buttonViewApply.setText("Assigned");
+            } else {
+                holder.buttonViewApply.setEnabled(true);
+                holder.buttonViewApply.setText("Apply");
+            }
+
             holder.buttonViewDetails.setOnClickListener(v -> {
                 Intent intent = new Intent(context, JobDetailsActivity.class);
                 intent.putExtra("jobName", job.getJobName());
@@ -201,8 +225,8 @@ public class WorkerViewJobs extends AppCompatActivity {
             });
 
             holder.buttonViewReport.setOnClickListener(v -> {
-               ReportDialog reportDialog = new ReportDialog(context, job.getJobId(),userId);
-               reportDialog.show();
+                ReportDialog reportDialog = new ReportDialog(context, job.getJobId(), userId);
+                reportDialog.show();
             });
         }
 
