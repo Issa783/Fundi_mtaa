@@ -87,7 +87,10 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String jobDescription = document.getString("jobDescription");
                             Timestamp timestamp = document.getTimestamp("timestamp");
                             String workerId = document.getString("workerId");
-                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,timestamp,workerId);
+                            Boolean isAssignedBoolean = document.getBoolean("isAssigned");
+                            boolean isAssigned = (isAssignedBoolean != null) ? isAssignedBoolean : false; // Handle null Boolean
+
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false, timestamp, workerId, isAssigned);
                             // Set the document ID to the Job object
                             job.setDocumentId(document.getId());
 
@@ -100,6 +103,7 @@ public class ViewJobsActivity extends AppCompatActivity {
                     }
                 });
     }
+
     // Method to delete a job from Firestore
     private void deleteJob(Job job) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
