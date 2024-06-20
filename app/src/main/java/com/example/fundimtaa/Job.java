@@ -15,10 +15,11 @@ public class Job {
     private boolean isCompleted;
     private Timestamp timestamp;
     private String workerId;
+    private boolean isAssigned; // New field
     private String clientName;
     private String clientEmail;
-    private String clientPhoneNumber;
-    private String clientLocation;
+    private  String clientPhoneNumber;
+    private  String clientLocation;
 
     // Default constructor required by Firestore
     public Job() {
@@ -27,7 +28,7 @@ public class Job {
 
     public Job(String jobId, String clientId, String documentId, String jobName,
                String jobStartDate, String minExperience,
-               String location, String price, String jobDescription, boolean isCompleted, Timestamp timestamp,String workerId) {
+               String location, String price, String jobDescription, boolean isCompleted, Timestamp timestamp, String workerId, boolean isAssigned) {
         this.jobId = jobId;
         this.clientId = clientId;
         this.documentId = documentId;
@@ -40,6 +41,7 @@ public class Job {
         this.isCompleted = isCompleted;
         this.timestamp = timestamp;
         this.workerId = workerId;
+        this.isAssigned = isAssigned;
     }
 
     // Getter methods
@@ -165,4 +167,15 @@ public class Job {
     public void setClientLocation(String clientLocation) {
         this.clientLocation = clientLocation;
     }
+    public boolean isAssigned() {
+        return isAssigned;
+    }
+
+    public void setAssigned(boolean assigned) {
+        isAssigned = assigned;
+    }
+
+
+
+
 }
