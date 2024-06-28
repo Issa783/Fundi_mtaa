@@ -220,9 +220,16 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void signInWithGoogle() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+ private void signInWithGoogle() {
+        // Sign out the current user to ensure the account chooser dialog appears every time
+        mGoogleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                // Start the sign-in intent
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, RC_SIGN_IN);
+            }
+        });
     }
 
     // Handle the result of the Google Sign-In intent
