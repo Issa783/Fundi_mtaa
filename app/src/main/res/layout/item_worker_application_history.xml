@@ -21,10 +21,10 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textViewJobDate"
+            android:id="@+id/textViewPublishedOn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Job Date"
+            android:text="Job Start Date"
             android:textSize="16sp"
             android:textColor="@android:color/darker_gray"
             android:layout_marginTop="8dp"/>
