@@ -85,12 +85,13 @@ public class ViewJobsActivity extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
+                            Boolean rejected = document.getBoolean("rejected");
                             Timestamp timestamp = document.getTimestamp("timestamp");
                             String workerId = document.getString("workerId");
                             Boolean isAssignedBoolean = document.getBoolean("isAssigned");
                             boolean isAssigned = (isAssignedBoolean != null) ? isAssignedBoolean : false; // Handle null Boolean
 
-                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false, timestamp, workerId, isAssigned);
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,false, timestamp, workerId, isAssigned);
                             // Set the document ID to the Job object
                             job.setDocumentId(document.getId());
 
