@@ -42,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient; // Google Sign-In client
     private static final int RC_SIGN_IN = 9001; // Request code for Google Sign-In
     private FirebaseFirestore mFirestore;
+    private String selectedRole; // Role passed from ChooseRoleActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,8 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
+        // Get the role passed from ChooseRoleActivity
+        selectedRole = getIntent().getStringExtra("ROLE");
 
         // Configure Google Sign-In
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
