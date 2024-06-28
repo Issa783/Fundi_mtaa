@@ -103,11 +103,12 @@ public class WorkerViewJobs extends AppCompatActivity {
                             String location = document.getString("location");
                             String price = document.getString("price");
                             String jobDescription = document.getString("jobDescription");
+                            Boolean rejected = document.getBoolean("rejected");
                             Timestamp timestamp = document.getTimestamp("timestamp");
                             String workerId = document.getString("workerId");
 
                             // Create a Job object without setting isAssigned yet
-                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false, timestamp, workerId, false);
+                            Job job = new Job(jobId, clientId, null, jobName, jobStartDate, minExperience, location, price, jobDescription, false,false ,timestamp, workerId, false);
                             job.setDocumentId(document.getId());
 
                             // Check the AssignedJobs collection to see if the job is assigned
