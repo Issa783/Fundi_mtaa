@@ -22,7 +22,7 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void run() {
                 // Start LoginActivity
-                Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+                Intent intent = new Intent(SplashActivity.this, ChooseRoleActivity.class);
                 startActivity(intent);
                 finish(); // Finish splash activity to prevent user from going back to it
             }
