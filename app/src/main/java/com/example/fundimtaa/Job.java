@@ -13,6 +13,7 @@ public class Job {
     private String price;
     private String jobDescription;
     private boolean isCompleted;
+    private boolean rejected;
     private Timestamp timestamp;
     private String workerId;
     private boolean isAssigned; // New field
@@ -28,7 +29,7 @@ public class Job {
 
     public Job(String jobId, String clientId, String documentId, String jobName,
                String jobStartDate, String minExperience,
-               String location, String price, String jobDescription, boolean isCompleted, Timestamp timestamp, String workerId, boolean isAssigned) {
+               String location, String price, String jobDescription, boolean isCompleted,boolean rejected, Timestamp timestamp, String workerId, boolean isAssigned) {
         this.jobId = jobId;
         this.clientId = clientId;
         this.documentId = documentId;
@@ -39,6 +40,7 @@ public class Job {
         this.price = price;
         this.jobDescription = jobDescription;
         this.isCompleted = isCompleted;
+        this.rejected = rejected;
         this.timestamp = timestamp;
         this.workerId = workerId;
         this.isAssigned = isAssigned;
@@ -119,6 +121,13 @@ public class Job {
 
     public void setCompleted(boolean completed) {
         isCompleted = completed;
+    }
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    public void setRejected(boolean rejected) {
+        this.rejected = rejected;
     }
 
     public Timestamp getTimestamp() {
