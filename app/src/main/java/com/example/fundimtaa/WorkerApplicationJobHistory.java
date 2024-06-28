@@ -2,6 +2,7 @@ package com.example.fundimtaa;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,37 +27,39 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 
 public class WorkerApplicationJobHistory extends AppCompatActivity {
-
-    private RecyclerView recyclerViewPendingJobs;
-    private RecyclerView recyclerViewCompletedJobs;
-    private JobAdapter pendingJobAdapter;
-    private JobAdapter completedJobAdapter;
-    private List<Job> pendingJobsList;
-    private List<Job> completedJobsList;
+    private RecyclerView recyclerViewPendingJobs, recyclerViewCompletedJobs, recyclerViewRejectedJobs;
+    private JobAdapter pendingJobAdapter, completedJobAdapter, rejectedJobAdapter;
+    private List<Job> pendingJobList = new ArrayList<>();
+    private List<Job> completedJobList = new ArrayList<>();
+    private List<Job> rejectedJobList = new ArrayList<>();
+    private FirebaseFirestore db;
+    private String workerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_worker_application_history);
 
-        // Initialize RecyclerViews
+        db = FirebaseFirestore.getInstance();
+        workerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         recyclerViewPendingJobs = findViewById(R.id.recyclerViewPendingJobs);
+        recyclerViewCompletedJobs = findViewById(R.id.recyclerViewCompletedJobs);
+        recyclerViewRejectedJobs = findViewById(R.id.recyclerViewRejectedJobs);
+
         recyclerViewPendingJobs.setLayoutManager(new LinearLayoutManager(this));
-        // Initialize lists
-        pendingJobsList = new ArrayList<>();
+        recyclerViewCompletedJobs.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewRejectedJobs.setLayoutManager(new LinearLayoutManager(this));
 
+        pendingJobAdapter = new JobAdapter(pendingJobList, "Pending");
+        completedJobAdapter = new JobAdapter(completedJobList, "Completed");
+        rejectedJobAdapter = new JobAdapter(rejectedJobList, "Rejected");
 
-        // Initialize adapters with the appropriate isPending parameter
-        pendingJobAdapter = new JobAdapter(pendingJobsList); // For pending jobs
-
-
-
-        // Set adapters to RecyclerViews
         recyclerViewPendingJobs.setAdapter(pendingJobAdapter);
+        recyclerViewCompletedJobs.setAdapter(completedJobAdapter);
+        recyclerViewRejectedJobs.setAdapter(rejectedJobAdapter);
 
-
-        // Retrieve assigned jobs for the worker from Firestore
-        retrieveAssignedJobs();
+        fetchJobs();
     }
 
 
@@ -96,7 +100,7 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
     // Method to retrieve additional job details from Firestore
     private void retrieveJobDetails(String jobId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs").document(jobId)
+        db.collection("jobs").document(jobId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -126,145 +130,137 @@ public class WorkerApplicationJobHistory extends AppCompatActivity {
                     Toast.makeText(WorkerApplicationJobHistory.this, "Failed to retrieve job details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
-    private void retrieveAssignedJobs() {
-        // Get the current user
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        // Check if the current user is not null
-        if (currentUser != null) {
-            String workerId = currentUser.getUid();
-            // Query Firestore to fetch assigned pending jobs for the worker
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("AssignedJobs")
-                    .whereEqualTo("workerId", workerId)
-                    .orderBy("timestamp", Query.Direction.DESCENDING) // Order by timestamp descending
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            pendingJobsList.clear();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Job job = document.toObject(Job.class);
-                                // Set the documentId for the job
-                                job.setDocumentId(document.getId());
-                                // Add the pending job to the list
-                                pendingJobsList.add(job);
+    private void fetchJobs() {
+        // Fetch assigned jobs
+        db.collection("AssignedJobs")
+                .whereEqualTo("workerId", workerId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Job job = document.toObject(Job.class);
+                            if (job.isCompleted()) {
+                                completedJobList.add(job);
+                            } else {
+                                pendingJobList.add(job);
                             }
-                            // Notify adapter of data change
-                            pendingJobAdapter.notifyDataSetChanged();
-                        } else {
-                            // Handle errors
-                            Toast.makeText(WorkerApplicationJobHistory.this, "Failed to retrieve assigned pending jobs: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
-                    });
-        } else {
-            // If currentUser is null, handle the case where the user is not signed in
-            Toast.makeText(WorkerApplicationJobHistory.this, "No user signed in", Toast.LENGTH_SHORT).show();
-        }
+                        pendingJobAdapter.notifyDataSetChanged();
+                        completedJobAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("WorkerApplicationJobHistory", "Error fetching assigned jobs: ", task.getException());
+                    }
+                });
 
-    }
-    private void deleteJob(String documentId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("AssignedJobs").document(documentId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    // Job deleted successfully
-                    Toast.makeText(WorkerApplicationJobHistory.this, "Job marked as done", Toast.LENGTH_SHORT).show();
-                    // Remove the deleted job from the list
-                    removeDeletedJob(documentId);
-                })
-                .addOnFailureListener(e -> {
-                    // Handle errors while deleting job
-                    Toast.makeText(WorkerApplicationJobHistory.this, "Failed to mark job as done: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        // Fetch rejected jobs
+        db.collection("RejectedJobs")
+                .whereEqualTo("workerId", workerId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Job job = document.toObject(Job.class);
+                            rejectedJobList.add(job);
+                        }
+                        rejectedJobAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("WorkerApplicationJobHistory", "Error fetching rejected jobs: ", task.getException());
+                    }
                 });
     }
-
-    private void removeDeletedJob(String documentId) {
-        // Find the position of the job in the list
-        int index = -1;
-        for (int i = 0; i < pendingJobsList.size(); i++) {
-            if (pendingJobsList.get(i).getDocumentId().equals(documentId)) {
-                index = i;
-                break;
-            }
-        }
-        // If the job is found, remove it from the list and notify the adapter
-        if (index != -1) {
-            pendingJobsList.remove(index);
-            pendingJobAdapter.notifyItemRemoved(index);
-        }
-    }
-
-
-
-    // Adapter for displaying pending jobs in RecyclerView
-    private class JobAdapter extends RecyclerView.Adapter<JobViewHolder> {
-
+    class JobAdapter extends RecyclerView.Adapter<JobAdapter.JobViewHolder> {
         private List<Job> jobList;
+        private String sectionType;
 
-        public JobAdapter(List<Job> jobList) {
+        JobAdapter(List<Job> jobList, String sectionType) {
             this.jobList = jobList;
+            this.sectionType = sectionType;
+        }
+
+        @NonNull
+        @Override
+        public JobViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_worker_application_history, parent, false);
+            return new JobViewHolder(itemView);
         }
 
         @Override
-        public JobViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_worker_application_history, parent, false);
-            return new JobViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(JobViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull JobViewHolder holder, int position) {
             Job job = jobList.get(position);
-            holder.bind(job);
+            holder.textViewJobName.setText("Job Name: " + job.getJobName());
+            holder.textViewJobStartDate.setText("Job Start Date: " + job.getJobStartDate());
+
+            holder.buttonViewJobDetails.setOnClickListener(v -> {
+                retrieveJobDetails(job.getJobId());
+            });
+
+            holder.buttonViewClientDetails.setOnClickListener(v -> {
+                retrieveClientDetails(job.getJobId());
+            });
+
+            if (sectionType.equals("Pending")) {
+                holder.buttonMarkAsDone.setVisibility(View.VISIBLE);
+                holder.buttonMarkAsDone.setOnClickListener(v -> markJobAsDone(job));
+            } else {
+                holder.buttonMarkAsDone.setVisibility(View.GONE);
+            }
+
+            if (sectionType.equals("Rejected")) {
+                holder.buttonViewClientDetails.setVisibility(View.GONE);
+                holder.buttonMarkAsDone.setVisibility(View.GONE);
+                holder.buttonViewJobDetails.setVisibility(View.VISIBLE);
+            }
         }
 
         @Override
         public int getItemCount() {
             return jobList.size();
         }
-    }
 
-    // ViewHolder for displaying job items in RecyclerView
-    private class JobViewHolder extends RecyclerView.ViewHolder {
+        class JobViewHolder extends RecyclerView.ViewHolder {
+            TextView textViewJobName, textViewJobStartDate;
+            Button buttonViewJobDetails, buttonViewClientDetails, buttonMarkAsDone;
 
-        private TextView textViewJobName;
-        private TextView textViewJobStartDate;
-        private Button buttonViewJobDetails;
-        private  Button buttonViewClientDetails;
-        private Button buttonMarkAsDone;
-
-        public JobViewHolder(View itemView) {
-            super(itemView);
-            textViewJobName = itemView.findViewById(R.id.textViewJobName);
-            textViewJobStartDate = itemView.findViewById(R.id.textViewJobDate);
-            buttonViewJobDetails = itemView.findViewById(R.id.buttonViewJobDetails);
-            buttonViewClientDetails = itemView.findViewById(R.id.buttonViewClientDetails);
-            buttonMarkAsDone = itemView.findViewById(R.id.buttonMarkAsDone);
+            JobViewHolder(@NonNull View itemView) {
+                super(itemView);
+                textViewJobName = itemView.findViewById(R.id.textViewJobName);
+                textViewJobStartDate = itemView.findViewById(R.id.textViewPublishedOn);
+                buttonViewJobDetails = itemView.findViewById(R.id.buttonViewJobDetails);
+                buttonViewClientDetails = itemView.findViewById(R.id.buttonViewClientDetails);
+                buttonMarkAsDone = itemView.findViewById(R.id.buttonMarkAsDone);
+            }
         }
 
-        public void bind(Job job) {
-            textViewJobName.setText("Job Name: " + job.getJobName());
-            textViewJobStartDate.setText("Job Start Date: " + job.getJobStartDate());
+        private void markJobAsDone(Job job) {
+            job.setCompleted(true);
+            FirebaseFirestore.getInstance().collection("AssignedJobs")
+                    .document(job.getJobId())
+                    .update("completed", true)
+                    .addOnSuccessListener(aVoid -> {
+                        pendingJobList.remove(job);
+                        completedJobList.add(job);
+                        notifyDataSetChanged();
+                        updateAssignedJobsCount(job.getWorkerId(), -1);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("JobAdapter", "Failed to mark job as done: " + e.getMessage());
+                    });
+        }
 
-            // Show "Mark as Done" button
-            buttonMarkAsDone.setVisibility(View.VISIBLE);
-            buttonViewJobDetails.setVisibility(View.VISIBLE);
-            buttonViewClientDetails.setVisibility(View.VISIBLE);
-
-            // Set OnClickListener for "Mark as Done" button
-            buttonMarkAsDone.setOnClickListener(v -> {
-                String documentId = job.getDocumentId();
-                deleteJob(documentId);
-            });
-
-            // Set OnClickListener for "View Job Details" button
-            buttonViewJobDetails.setOnClickListener(v -> {
-                retrieveJobDetails(job.getJobId());
-            });
-            buttonViewClientDetails.setOnClickListener(v -> {
-                retrieveClientDetails(job.getJobId());
-            });
+        private void updateAssignedJobsCount(String workerId, int delta) {
+            FirebaseFirestore.getInstance().collection("AssignedJobsCount")
+                    .document(workerId)
+                    .update("numberOfAssignedJobs", FieldValue.increment(delta))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("JobAdapter", "Updated number of assigned jobs for worker " + workerId);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("JobAdapter", "Failed to update number of assigned jobs: " + e.getMessage());
+                    });
         }
     }
+
+
 
 
 }
