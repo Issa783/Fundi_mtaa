@@ -69,6 +69,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Assign Job" />
+            <Button
+                android:id="@+id/buttonRejectJob"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reject Job"
+             />
+
 
         </LinearLayout>
 
