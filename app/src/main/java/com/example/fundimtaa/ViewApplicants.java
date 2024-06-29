@@ -616,7 +616,7 @@ public class ViewApplicants extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         // Job is already assigned to this worker
-                        Toast.makeText(ViewApplicants.this, "You have already rejected " + worker.getName() + " for this job", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewApplicants.this, "You have already rejected " + worker.getName() + " this job", Toast.LENGTH_SHORT).show();
                     } else {
                         Map<String, Object> rejectedJob = new HashMap<>();
                         rejectedJob.put("workerId", worker.getWorkerId());
@@ -631,7 +631,7 @@ public class ViewApplicants extends AppCompatActivity {
                                 .set(rejectedJob)
                                 .addOnSuccessListener(aVoid -> {
                                     Log.d("RejectedJobs", "Job rejected: " + jobId);
-                                    Toast.makeText(ViewApplicants.this, "Job rejected for " + worker.getName(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ViewApplicants.this, "You have rejected  " + worker.getName() + " this job.", Toast.LENGTH_SHORT).show();
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e("RejectedJobs", "Failed to reject job: " + e.getMessage());
