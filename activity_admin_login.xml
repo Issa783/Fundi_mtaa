@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- Admin Icon -->
+    <ImageView
+        android:id="@+id/adminIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/admin"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="Admin Icon"/>
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Admin Login"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_below="@id/adminIcon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Username -->
+    <EditText
+        android:id="@+id/editTextEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email"
+        android:layout_below="@id/textViewTitle"
+        android:layout_marginBottom="16dp"
+        android:inputType="text"/>
+
+    <!-- Password -->
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:layout_below="@id/editTextEmail"
+        android:layout_marginBottom="16dp"
+        android:inputType="textPassword"/>
+
+    <!-- Login Button -->
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:layout_below="@id/editTextPassword"/>
+
+</RelativeLayout>
