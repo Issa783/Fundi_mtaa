@@ -129,9 +129,6 @@ public class LoginActivity extends AppCompatActivity {
                                                                     case "worker":
                                                                         startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
                                                                         break;
-                                                                    case "admin":
-                                                                        startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                                                                        break;
                                                                     default:
                                                                         // User role not found
                                                                         Toast.makeText(LoginActivity.this, "User role not found", Toast.LENGTH_SHORT).show();
@@ -220,7 +217,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
- private void signInWithGoogle() {
+    private void signInWithGoogle() {
         // Sign out the current user to ensure the account chooser dialog appears every time
         mGoogleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
             @Override
@@ -231,6 +228,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
 
     // Handle the result of the Google Sign-In intent
     @Override
@@ -280,9 +278,6 @@ public class LoginActivity extends AppCompatActivity {
                                                                 break;
                                                             case "worker":
                                                                 startActivity(new Intent(LoginActivity.this, WorkerHomeDashboardActivity.class));
-                                                                break;
-                                                            case "admin":
-                                                                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                                                                 break;
                                                             default:
                                                                 // User role not found
