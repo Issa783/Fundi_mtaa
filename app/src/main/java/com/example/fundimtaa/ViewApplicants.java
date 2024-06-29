@@ -92,8 +92,8 @@ public class ViewApplicants extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         viewModel = new ViewModelProvider(this).get(ViewApplicantsViewModel.class);
 
-        SearchView searchView = findViewById(R.id.searchView);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+       // SearchView searchView = findViewById(R.id.searchView);
+      /*  searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 return false;
@@ -110,7 +110,7 @@ public class ViewApplicants extends AppCompatActivity {
                 }
                 return true;
             }
-        });
+        });*/
 
         imageViewFilter.setOnClickListener(v -> showFilterDialog());
 
@@ -283,16 +283,20 @@ public class ViewApplicants extends AppCompatActivity {
 
                             // Fetch assigned jobs count and ratings for each worker
                             fetchAssignedJobsCountForAllWorkers();
-                            // Sort workers by score after updating the assigned jobs count
-                            Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
-                            workerAdapter.setSearching(false); // Reset the searching flag
-                            workerAdapter.notifyDataSetChanged();
+
+                            // Wait until assigned jobs are fetched and then sort workers
+                            new Handler().postDelayed(() -> {
+                                Collections.sort(workerList, (worker1, worker2) -> Double.compare(calculateWorkerScore(worker2), calculateWorkerScore(worker1)));
+                                workerAdapter.setSearching(false); // Reset the searching flag
+                                workerAdapter.notifyDataSetChanged();
+                            }, 2000); // Adjust delay as necessary to ensure assigned jobs are fetched
                         } else {
                             Toast.makeText(ViewApplicants.this, "Failed to load workers: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
+
 
     private void fetchAssignedJobsCountForAllWorkers() {
         for (Worker worker : workerList) {
